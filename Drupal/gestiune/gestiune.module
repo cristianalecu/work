@@ -1,0 +1,27 @@
+<?php
+/**
+ * @file
+ * Code for the Gestiune feature.
+ */
+
+include_once 'gestiune.features.inc';
+
+/**
+ * Implementation of hook_init().
+ */
+function gestiune_init() {
+    global $user;
+	
+	drupal_add_css(drupal_get_path('module', 'gestiune') .'/css/gestiune.css');
+	drupal_add_js(drupal_get_path('module', 'gestiune') .'/js/gestiune.js');
+
+	drupal_add_css(drupal_get_path('module', 'gestiune') .'/css/jquery.qtip.min.css');
+	drupal_add_js(drupal_get_path('module', 'gestiune') .'/js/jquery.qtip.min.js');
+
+	if(strpos($_SERVER['HTTP_HOST'], 'localhost') !== FALSE) {
+		$path_tmp = variable_get('file_temporary_path' , '');
+		if(strpos($path_tmp, 'wamp') === FALSE) {
+			variable_set('file_temporary_path', 'C:\wamp\tmp');
+		}
+	}
+} 

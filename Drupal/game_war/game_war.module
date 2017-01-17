@@ -1,0 +1,672 @@
+<?php
+/**
+ * @file
+ * Code for the game_war feature.
+ */
+
+include_once 'game_war.features.inc';
+
+/**
+ * Implementation of hook_init().
+ */
+function game_war_init() {
+    global $user;
+	
+	drupal_add_css(drupal_get_path('module', 'game_war') .'/css/game_war.css');
+	drupal_add_js(drupal_get_path('module', 'game_war') .'/js/game_war.js');
+
+	drupal_add_css(drupal_get_path('module', 'game_war') .'/css/jquery.qtip.min.css');
+	drupal_add_js(drupal_get_path('module', 'game_war') .'/js/jquery.qtip.min.js');
+
+	if(strpos($_SERVER['HTTP_HOST'], 'localhost') !== FALSE) {
+		$path_tmp = variable_get('file_temporary_path' , '');
+		if(strpos($path_tmp, 'wamp') === FALSE) {
+			variable_set('file_temporary_path', 'C:\wamp\tmp');
+		}
+	}
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function game_war_menu() {
+	global $user;
+
+	$items['process_stat'] = array(
+			'title' => 'Process Status',
+			'type' => MENU_CALLBACK,
+			'page callback' => 'game_war_process_status',
+			'access callback' => 'user_is_logged_in',
+			//'access arguments' => array('access content'),
+	);
+	$items['get_json_userstatus'] = array(
+			'title' => 'Get User Status',
+			'type' => MENU_CALLBACK,
+			'page callback' => 'game_war_get_userstatus',
+			'access callback' => 'user_is_logged_in',
+	);
+	$items['user/camp'] = array(
+	    'title' => 'Camp lupta',
+	    'description' => 'Campul de lupta',
+	    'page callback' => 'game_war_goto_campulmeu',
+	    'page arguments' => array(2),
+	    'access callback' => 'user_is_logged_in',
+	    'type' => MENU_NORMAL_ITEM,
+	);
+	$items['user/magazin'] = array(
+			'title' => 'Magazin',
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('game_war_form_store'),
+			'access callback' => 'user_is_logged_in',
+            'type' => MENU_LOCAL_ACTION,
+            'file' => 'game_war.admin.inc',
+			);
+	$items['user/status'] = array(
+			'title' => 'Status',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('game_war_form_status'),
+			'access callback' => 'user_is_logged_in',
+			'type' => MENU_LOCAL_ACTION,
+			'file' => 'game_war.admin.inc',
+	);
+	$items['user/alianta'] = array(
+			'title' => 'Aliante',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('game_war_form_alianta'),
+			'access callback' => 'user_is_logged_in',
+			'type' => MENU_LOCAL_ACTION,
+			'file' => 'game_war.admin.inc',
+	);
+	$items['user/atac/%'] = array(
+			'title' => 'Atac',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('game_war_form_atac', 2),
+			'access callback' => 'user_is_logged_in',
+            'type' => MENU_CALLBACK,
+			'file' => 'game_war.admin.inc',
+	);
+	$items['user/admin'] = array(
+			'title' => 'Admin',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('game_war_form_admin'),
+			'access arguments' => array('administer content'),
+            'type' => MENU_CALLBACK,
+			'file' => 'game_war.admin.inc',
+	);
+	
+	return $items;
+}
+
+function game_war_process_status() {
+	$output = array('ook',1);
+	drupal_json_output($output);
+	exit;
+}
+
+function game_war_get_userstatus($ar) {
+	$args = explode("/", $_GET['q']);
+	$output = Array();
+	foreach($args as $id => $arg) {
+		if($id == 0)
+			continue;
+	  $params = explode("_" , $arg);
+
+	  $text = NULL;
+	   
+	  $link = NULL; //game_war_get_userst(intval($params[0]), intval($params[1]), intval($params[3]), intval($params[4]), intval($params[5]), $text);
+	  $output[] = array($link, $text, $params[2] . "_" . $params[3] . "_" . $params[4] . "_" . $params[5]);
+
+	}
+	drupal_json_output($output);
+	exit;
+}
+
+/**
+ * Inform Ultimate Cron about cron jobs.
+ *
+ * Note that the result of this hook is cached.
+ *
+ * @return array
+ *   Array of cron jobs, keyed by name.
+ *    - "title": (optional) The title of the cron job. If not provided, the
+ *      name of the cron job will be used.
+ *    - "file": (optional) The file where the callback lives.
+ *    - "module": The module where this job lives.
+ *    - "file path": (optional) The path to the directory containing the file
+ *      specified in "file". This defaults to the path to the module
+ *      implementing the hook.
+ *    - "callback": (optional) The callback to call when running the job.
+ *      Defaults to the job name.
+ *    - "callback arguments": (optional) Arguments for the callback. Defaults
+ *      to array().
+ *    - "enabled": (optional) Initial state of the job. Defaults to TRUE.
+ *    - "tags": (optional) Tags for the job. Defaults to array().
+ *    - "settings": (optional) Default settings (plugin type) for this job.
+ *      Example of a job declaring some default settings for a plugin called
+ *      "some_plugin":
+ *      'settings' => array(
+ *        'some_plugin' => array(
+ *          'some_value' => 60,
+ *        ),
+ *      ),
+ *    - "scheduler": (optional) Default scheduler (plugin type) for this job.
+ *      Example of a job using the crontab scheduler as default:
+ *      'scheduler' => array(
+ *        'name' => 'crontab',
+ *        'crontab' => array(
+ *          'rules' => array('* * * * *'),
+ *        ),
+ *      ),
+ *    - "launcher": (optional) Default launcher (plugin type) for this job.
+ *      Example of a job using the serial launcher as default:
+ *      'launcher' => array(
+ *        'name' => 'serial',
+ *        'serial' => array(
+ *          'thread' => 'any',
+ *        ),
+ *      ),
+ *    - "logger": (optional) Default logger (plugin type) for this job.
+ *      Example of a job using the cache logger as default:
+ *      'logger' => array(
+ *        'name' => 'cache',
+ *        'cache' => array(
+ *          'bin' => 'mycachebin',
+ *        ),
+ *      ),
+ */
+function game_war_cronapi() {
+	$items = array();
+
+	$items['game_war_cron_job_1'] = array(
+			'title' => t('War Game Cron main '),
+			'callback' => 'game_war_cron_job_1_callback',
+			'callback arguments' => array('cronjob1'),
+			'enabled' => FALSE,
+	);
+
+	return $items;
+}
+
+/**
+ * The callback for the cron job,
+ */
+function game_war_cron_job_1_callback($job) {
+global $user;
+global $game_settings;
+
+    $usr = $user->uid;
+    if($usr == 0)
+    	$usr = -1;
+    game_war_get_gamesettings();
+    $dt = date("Y-m-d H:i:s");
+    $sSql = "update {war_cron} set uid=$usr where uid=0 and vremea<'$dt';";
+    db_query($sSql);
+    $sSql  = "SELECT * from {war_cron} where uid=$usr order by tip "; 
+    $result = db_query($sSql);
+    foreach ($result as $rs) {
+    	if($rs->tip == 1) {
+    		$sSql = "update {user_gamedata} set atacuri_bonus=case when atacuri_bonus_expire<='$dt' then 0 else atacuri_bonus end " .
+    		 ", atacuri_max_bonus=case when atacuri_max_expire<='$dt' then 0 else atacuri_max_bonus end" .
+    		 ", vot_bonusuri=case when vot_bon_expire<='$dt' then 0 else vot_bonusuri end" .
+    		 ", seif_bonus=case when seif_bonus_expire<='$dt' then 0 else seif_bonus end";
+    		db_query($sSql);
+    	}
+    	else if($rs->tip == 2) {
+    		$sSql = "update {user_gamedata} set voturiph=1, seif_extras=0";
+    		db_query($sSql);
+    	}
+    	else if($rs->tip == 3) {
+    		$sSql = "update {user_gamedata} set seif_depuneri=case when seif_depuneri<" . $game_settings['seif_depuneri'] . " then " . $game_settings['seif_depuneri'] . " else seif_depuneri end, " .
+    		  " atac_dublu_last_used='" . date("Y-m-d H:i:s",strtotime($rs->vremea  ." - 1 minute")) . "'";
+    		db_query($sSql);
+    	}
+    	else if($rs->tip == 10) {
+    		$sSql = "update {user_gamedata} set soldati=soldati+soldatiph ";
+    		db_query($sSql);
+    		game_war_refresh_positions();
+    	}
+    	else if($rs->tip == 20) {
+    		$sSql = "update {user_gamedata} set bani=bani +soldati * " . $game_settings['bani_pe_soldat'];
+    		db_query($sSql);
+    	}
+    	
+    	if($rs->xvalue == 0)
+    		$sSql = "update {war_cron} set vremea='" . date("Y-m-d H:i:s",strtotime($dt  ." + 1 minute")) . "' where tip=$rs->tip";  //uid=0 and
+    	else 
+    		$sSql = "update {war_cron} set vremea='" . date("Y-m-d H:i:s",strtotime($rs->vremea  ." + $rs->xvalue minutes")) . "' where tip=$rs->tip";  //uid=0 and
+    		    
+    	db_query($sSql);
+    }
+    $sSql = "update {war_cron} set uid=0 where uid=$usr";
+    db_query($sSql);
+	$sSql = "INSERT INTO {war_cronhist}  VALUES (CURRENT_TIMESTAMP, '1', $usr, '2016-11-11 00:00:00');";
+	db_query($sSql);	
+	$test = 0;
+}
+
+function game_war_goto_campulmeu() {
+		drupal_goto('camplupta', array('page'=>'1'));
+}
+
+function game_war_get_users_on_page($count) {
+global $users_on_page;
+
+	if(isset($users_on_page))
+	  return;
+	
+	game_war_add_users_gamedata();
+	
+	$sSql  = "SELECT u.name, g.* from {users} u, {user_gamedata} g where u.uid=g.uid "; //and pagina = (SELECT pagina from {user_gamedata} where pozitie=$count) ";
+	$result = db_query($sSql);
+	foreach ($result as $rs) {
+		$users_on_page[$rs->pozitie] = (array) $rs;
+	}		
+}
+
+function game_war_add_users_gamedata() {
+global $game_settings;
+
+	$sSql = "select cu, gu from (SELECT count(*) cu FROM {users} WHERE uid>1) u, (SELECT count(*) gu FROM {user_gamedata}) g";
+	$rs = db_query($sSql)->fetchAssoc();
+	if($rs['cu'] > $rs['gu'])
+	{
+		$sSql  = "SELECT uid, name from {users} where uid>1 and uid not in (select uid from {user_gamedata}) ";
+		$result = db_query($sSql);
+		game_war_get_gamesettings();
+		foreach ($result as $rs) {
+			game_war_insert_userdata($rs->uid, $rs->name);
+		}
+		game_war_refresh_positions();
+	}
+}
+
+function game_war_get_user_nume($count) {
+global $users_on_page;
+
+	game_war_get_users_on_page($count);
+	return $users_on_page[$count]['name'];	
+}
+function game_war_get_usernume_formated($count) {
+global $users_on_page;
+
+	game_war_get_users_on_page($count);
+	return '<a href="/user/atac/' . $users_on_page[$count]['uid'] . '">' . $users_on_page[$count]['name'] . '</a>';
+}
+function game_war_get_soldati($count) {
+global $users_on_page;
+
+	game_war_get_users_on_page($count);
+	return $users_on_page[$count]['soldati'];
+}
+
+function game_war_get_bani($count) {
+global $users_on_page;
+
+	game_war_get_users_on_page($count);
+	return $users_on_page[$count]['bani'];
+}
+
+
+function game_war_get_userdata($uid = NULL) {
+global $user;
+global $war_data;
+
+	if(!isset($uid))
+		$uid = $user->uid;
+
+	if(isset($war_data))
+	{
+		if($war_data['uid'] == $uid)
+			return;
+	}
+	else {
+		$sSql = "SELECT * FROM {user_gamedata} WHERE uid=$uid";
+		$war_data = db_query($sSql)->fetchAssoc();
+		if(! is_array($war_data))
+		{
+			$sSql = "SELECT name FROM {users} WHERE uid=$uid";
+			$usr = db_query($sSql)->fetchAssoc();
+			game_war_insert_userdata($uid, $usr['name']);
+			unset($war_data);
+			game_war_get_userdata($uid);
+		}
+	}
+}
+
+function game_war_insert_userdata($uid = NULL, $name=NULL) {
+	global $user;
+	global $war_data;
+	global $game_settings;
+
+	if(!isset($uid)) {
+		$uid = $user->uid;
+		$name = $user->name;
+	}
+	game_war_get_gamesettings();
+
+	$sSql = "insert into {user_gamedata} (uid,name,atacuri,atacuri_max,seif_depuneri,pozitie,pagina) values " .
+			"($uid, '" . $account->name . "'," . $game_settings['atacuri_max'] . "," . 
+			$game_settings['atacuri_max'] . "," .  $game_settings['seif_depuneri'] . "," .  "0, 0)";
+	db_query($sSql);
+	game_war_refresh_positions();
+
+}
+
+function game_war_user_delete($account) {
+	global $game_settings;
+	game_war_get_gamesettings();
+	$uid = $account->uid;
+	$sSql = "delete from {user_gamedata} where uid= $uid";
+	db_query($sSql);
+	$sSql = "delete from {user_lupte} where uid= $uid";
+	db_query($sSql);
+	$sSql = "delete from {user_weapons} where uid= $uid";
+	db_query($sSql);
+	game_war_refresh_positions();
+}
+
+function game_war_user_insert(&$edit, $account, $category) {
+	game_war_insert_userdata($account->uid, $account->name);
+}
+
+function game_war_get_gamesettings() {
+	global $game_settings;
+
+	if(!isset($game_settings['nid']))
+	{
+		//     	SELECT n.nid, m.field_moneda_jocului_value moneda, a1.field_nivel_atac_creste_la_fieca_value nivel_atac,
+		//     	a2.field_la_fiecare_nivel_atac_pret_value crescPretNivelAtac, a3.field_nivel_aparare_creste_la_fi_value nivel_apar,
+		//     	a4.field_la_fiecare_nivel_aparare_p_value crescPretNivelApar, a5.field_atacuri_primite_la_fiecare_value Atacurips,
+		//     	a6.field_atacuri_primite_2_value atacuripsbonus, a7.field_nr_maxim_atacuri_value maxatacuri,
+		//     	a8.field_nr_maxim_atacuri_bonus_1__value maxatacuribonus, a9.field_la_fiecare_15_min_pt_fieca_value banips,
+		//     	a10.field_nr_maxim_depuneri_seif_pe__value depuneri, a11.field_retragere_maxima_seif_pe_o_value retragereph
+		//     	FROM due_node n join due_field_data_field_moneda_jocului m on type='set_ri' and n.nid=m.entity_id
+		//     	join due_field_data_field_nivel_atac_creste_la_fieca a1 on n.nid=a1.entity_id
+		//     	join due_field_data_field_la_fiecare_nivel_atac_pret a2 on n.nid=a2.entity_id
+		//     	join due_field_data_field_nivel_aparare_creste_la_fi a3 on n.nid=a3.entity_id
+		//     	join due_field_data_field_la_fiecare_nivel_aparare_p a4 on n.nid=a4.entity_id
+		//     	join due_field_data_field_atacuri_primite_la_fiecare a5 on n.nid=a5.entity_id
+		//     	join due_field_data_field_atacuri_primite_2 a6 on n.nid=a6.entity_id
+		//     	join due_field_data_field_nr_maxim_atacuri a7 on n.nid=a7.entity_id
+		//     	join due_field_data_field_nr_maxim_atacuri_bonus_1_ a8 on n.nid=a8.entity_id
+		//     	join due_field_data_field_la_fiecare_15_min_pt_fieca a9 on n.nid=a9.entity_id
+		//     	join due_field_data_field_nr_maxim_depuneri_seif_pe_ a10 on n.nid=a10.entity_id
+		//     	join due_field_data_field_retragere_maxima_seif_pe_o a11 on n.nid=a11.entity_id
+		 
+// 		$sSql  = "SELECT n.nid, m.field_moneda_jocului_value moneda, a1.field_nivel_atac_creste_la_fieca_value nivel_atac,";
+// 		$sSql .= " a2.field_la_fiecare_nivel_atac_pret_value crescPretNivelAtac, a3.field_nivel_aparare_creste_la_fi_value nivel_apar,";
+// 		$sSql .= " a4.field_la_fiecare_nivel_aparare_p_value crescPretNivelApar, a5.field_atacuri_primite_la_fiecare_value Atacurips,";
+// 		$sSql .= " a6.field_atacuri_primite_2_value atacuripsbonus, a7.field_nr_maxim_atacuri_value maxatacuri,";
+// 		$sSql .= " a8.field_nr_maxim_atacuri_bonus_1__value maxatacuribonus, a9.field_la_fiecare_15_min_pt_fieca_value banips,";
+// 		$sSql .= " a10.field_nr_maxim_depuneri_seif_pe__value depuneri, a11.field_retragere_maxima_seif_pe_o_value retragereph ";
+// 		$sSql .= "FROM {node} n join {field_data_field_moneda_jocului} m on type='set_ri' and n.nid=m.entity_id";
+// 		$sSql .= " join {field_data_field_nivel_atac_creste_la_fieca} a1 on n.nid=a1.entity_id";
+// 		$sSql .= " join {field_data_field_la_fiecare_nivel_atac_pret} a2 on n.nid=a2.entity_id";
+// 		$sSql .= " join {field_data_field_nivel_aparare_creste_la_fi} a3 on n.nid=a3.entity_id";
+// 		$sSql .= " join {field_data_field_la_fiecare_nivel_aparare_p} a4 on n.nid=a4.entity_id";
+// 		$sSql .= " join {field_data_field_atacuri_primite_la_fiecare} a5 on n.nid=a5.entity_id";
+// 		$sSql .= " join {field_data_field_atacuri_primite_2} a6 on n.nid=a6.entity_id";
+// 		$sSql .= " join {field_data_field_nr_maxim_atacuri} a7 on n.nid=a7.entity_id";
+// 		$sSql .= " join {field_data_field_nr_maxim_atacuri_bonus_1_} a8 on n.nid=a8.entity_id";
+// 		$sSql .= " join {field_data_field_la_fiecare_15_min_pt_fieca} a9 on n.nid=a9.entity_id";
+// 		$sSql .= " join {field_data_field_nr_maxim_depuneri_seif_pe_} a10 on n.nid=a10.entity_id";
+// 		$sSql .= " join {field_data_field_retragere_maxima_seif_pe_o} a11 on n.nid=a11.entity_id";
+
+		$sSql  = "SELECT * from {war_setting} where active=1";
+		
+		$game_settings = db_query($sSql)->fetchAssoc();
+	}
+}
+
+function game_war_refresh_positions() {
+	$sSql  = "select s1.uid, s1.rank, s2.rank2 , s3.rank3 from (SELECT uid, @rownum := @rownum + 1 AS rank FROM (select * from due_user_gamedata order by soldati desc, name) t1, (SELECT @rownum := 0) r1 ) s1, (SELECT uid, @rownum2 := @rownum2 + 1 AS rank2 FROM (select * from due_user_gamedata order by (soldati+bonus_atac) desc) t2, (SELECT @rownum2 := 0) r2 ) s2, (SELECT uid, @rownum3 := @rownum3 + 1 AS rank3 FROM (select * from due_user_gamedata order by (soldati+bonus_aparare) desc) t3, (SELECT @rownum3 := 0) r3 ) s3 where s1.uid=s2.uid and s1.uid=s3.uid ";
+	$result = db_query($sSql);
+	foreach ($result as $rs) {
+		$pg = (int)((($rs->rank - 1) / 30)+1);
+		$sSql  = "update {user_gamedata} set pozitie=$rs->rank, pagina=$pg, top_atac=$rs->rank2, top_aparare=$rs->rank3 where uid = " . $rs->uid;
+		db_query($sSql);
+	}
+}
+
+// DROP TABLE IF EXISTS `due_war_cron`;
+// CREATE TABLE IF NOT EXISTS `due_war_cron` (
+// 		`vremea` datetime NOT NULL DEFAULT '3000-01-01 00:00:00' COMMENT 'Minute after has to be processed',
+// 		`tip` int(11) NOT NULL DEFAULT '1' COMMENT '1-soldati 2 bani',
+// 		`Descriere` varchar(200) NOT NULL COMMENT 'detalii',
+// 		`uid` int(11) NOT NULL DEFAULT '0' COMMENT 'who is processing',
+// 		`xvalue` int(11) NOT NULL DEFAULT '15' COMMENT 'minutes to postpone after process; 0 - postpone 1 minute from now'
+// 		) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+// 		INSERT INTO `due_war_cron` (`vremea`, `tip`, `Descriere`, `uid`, `xvalue`) VALUES
+// 		('2016-11-25 15:00:00', 1, 'reset atacuri_bonus,atacuri_max_bonus, vot_bonusuri, seif_bonus  if expired', 0, 0),
+// 		('2016-11-25 15:00:00', 2, 'reset each hour voturiph, seif_extras', 0, 60),
+// 		('2016-11-21 00:00:00', 3, 'reset duminica noapte seif_depuneri, atac_dublu_last_used', 0, 10080),
+// 		('2016-11-25 00:00:00', 10, 'creste nr. soldati, pozitie in fiecare noapte', 0, 1440),
+// 		('2016-11-25 00:00:00', 20, 'creste banii la 15 min cu nr. soldati * 4(setare); creste atacuri', 0, 15);
+
+// 		DROP TABLE IF EXISTS `due_user_gamedata`;
+// 		CREATE TABLE IF NOT EXISTS `due_user_gamedata` (
+// 				`uid` int(11) NOT NULL COMMENT 'user uid',
+// 				`strategie` int(11) NOT NULL DEFAULT '2' COMMENT '1-Atac 2-Aparare 3-Echilibrat',
+// 				`name` varchar(60) CHARACTER SET utf8 NOT NULL COMMENT 'user name',
+// 				`soldati` int(11) NOT NULL DEFAULT '10' COMMENT 'Soldati curent',
+// 				`soldatiph` int(11) NOT NULL DEFAULT '1' COMMENT 'Soldati pe zi',
+// 				`atacuri` int(11) NOT NULL DEFAULT '700' COMMENT 'Atacuri curente',
+// 				`atacuriph` int(11) NOT NULL DEFAULT '3' COMMENT 'Atacuri la 15 min, incl. bonusuri',
+// 				`atacuri_bonus` int(11) NOT NULL DEFAULT '0' COMMENT 'Cate bonusuri a cumparat',
+// 				`atacuri_bonus_expire` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT 'cand expira bonusul atacuri',
+// 				`atacuri_max` int(11) NOT NULL DEFAULT '700' COMMENT 'Atacuri maxime, incl. bonusuri',
+// 				`atacuri_max_bonus` int(11) NOT NULL DEFAULT '0' COMMENT 'Cate bonusuri de atacuri maxime a cumparat',
+// 				`atacuri_max_expire` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT 'Cand expira bonus max atacuri',
+// 				`atac_dublu_last_used` datetime NOT NULL DEFAULT '3000-01-01 00:00:00' COMMENT 'permite atac dublu pe zi, se reseteaza duminica noaptea',
+// 				`voturiph` smallint(6) DEFAULT '1' COMMENT 'De cate ori a fost votat in ora curenta',
+// 				`vot_stop` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Daca are activat bonusul de stop vot',
+// 				`vot_bonusuri` int(11) NOT NULL DEFAULT '0' COMMENT 'Cate bonusuri de vot a cumparat',
+// 				`vot_bon_expire` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT 'Cand expira bonusul de voturi',
+// 				`vot_stop_expire` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT 'Cand expira bonusul de stop vot',
+// 				`bani` decimal(20,0) NOT NULL DEFAULT '4000' COMMENT 'Bani in buzunar',
+// 				`seif` decimal(20,0) NOT NULL DEFAULT '6000' COMMENT 'Bani in seif',
+// 				`seif_extras` int(11) NOT NULL DEFAULT '0' COMMENT 'Extras din seif ora curenta',
+// 				`seif_bonus` int(11) NOT NULL DEFAULT '0' COMMENT 'Cate bonusuri de seif a cumparat',
+// 				`seif_bonus_expire` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT 'Cand expira bonusul de seif',
+// 				`seif_depuneri` int(11) NOT NULL DEFAULT '10' COMMENT 'Depuneri ramase pe sapt. incl bonus',
+// 				`card_expire` datetime NOT NULL DEFAULT '1000-01-01 00:00:00' COMMENT 'Cand expira bonusul de card',
+// 				`medalii_atac` int(11) NOT NULL DEFAULT '0' COMMENT 'Cate medalii a cumparat',
+// 				`medalii_aparare` int(11) NOT NULL DEFAULT '0' COMMENT 'Cate medalii aparare a cumparat',
+// 				`bonus_atac` int(11) NOT NULL DEFAULT '0' COMMENT 'Creste odata cu cumpararea arme sau medalii',
+// 				`bonus_aparare` int(11) NOT NULL DEFAULT '0' COMMENT 'Creste o data cu cumpararea de arme si medalii',
+// 				`pozitie` int(11) NOT NULL COMMENT 'Pozitia in pagini dupa soldati si nume',
+// 				`pagina` int(11) NOT NULL COMMENT 'pagina sau campul',
+// 				`top_atac` int(11) NOT NULL DEFAULT '0' COMMENT 'Pozitie in top atac',
+// 				`top_aparare` int(11) NOT NULL DEFAULT '0' COMMENT 'Pozitia in top aparare',
+// 				PRIMARY KEY (`uid`)
+// 				) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+// 				INSERT INTO `due_user_gamedata` (`uid`, `strategie`, `name`, `soldati`, `soldatiph`, `atacuri`, `atacuriph`, `atacuri_bonus`, `atacuri_bonus_expire`, `atacuri_max`, `atacuri_max_bonus`, `atacuri_max_expire`, `atac_dublu_last_used`, `voturiph`, `vot_stop`, `vot_bonusuri`, `vot_bon_expire`, `vot_stop_expire`, `bani`, `seif`, `seif_extras`, `seif_bonus`, `seif_bonus_expire`, `seif_depuneri`, `card_expire`, `medalii_atac`, `medalii_aparare`, `bonus_atac`, `bonus_aparare`, `pozitie`, `pagina`, `top_atac`, `top_aparare`) VALUES
+// 				(1, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 136, 5, 0, 0),
+// 				(17, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 13, 1, 0, 0),
+// 				(30, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 30, 1, 0, 0),
+// 				(32, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 132, 5, 0, 0),
+// 				(33, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 133, 5, 0, 0),
+// 				(34, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 145, 5, 0, 0),
+// 				(41, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 117, 4, 0, 0),
+// 				(42, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 105, 4, 0, 0),
+// 				(43, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 114, 4, 0, 0),
+// 				(44, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 38, 2, 0, 0),
+// 				(45, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 4, 1, 0, 0),
+// 				(46, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 135, 5, 0, 0),
+// 				(47, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 120, 4, 0, 0),
+// 				(48, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 144, 5, 0, 0),
+// 				(49, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 75, 3, 0, 0),
+// 				(50, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 3, 1, 0, 0),
+// 				(51, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 58, 2, 0, 0),
+// 				(52, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 37, 2, 0, 0),
+// 				(53, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 71, 3, 0, 0),
+// 				(54, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 116, 4, 0, 0),
+// 				(55, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 101, 4, 0, 0),
+// 				(56, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 33, 2, 0, 0),
+// 				(57, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 127, 5, 0, 0),
+// 				(58, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 35, 2, 0, 0),
+// 				(59, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 142, 5, 0, 0),
+// 				(60, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 143, 5, 0, 0),
+// 				(61, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 16, 1, 0, 0),
+// 				(62, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 110, 4, 0, 0),
+// 				(63, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 70, 3, 0, 0),
+// 				(64, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 103, 4, 0, 0),
+// 				(65, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 40, 2, 0, 0),
+// 				(66, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 108, 4, 0, 0),
+// 				(67, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 139, 5, 0, 0),
+// 				(68, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 94, 4, 0, 0),
+// 				(69, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 68, 3, 0, 0),
+// 				(70, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 24, 1, 0, 0),
+// 				(71, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 123, 5, 0, 0),
+// 				(72, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 1, 1, 0, 0),
+// 				(73, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 91, 4, 0, 0),
+// 				(74, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 99, 4, 0, 0),
+// 				(75, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 130, 5, 0, 0),
+// 				(76, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 104, 4, 0, 0),
+// 				(77, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 62, 3, 0, 0),
+// 				(78, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 52, 2, 0, 0),
+// 				(79, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 54, 2, 0, 0),
+// 				(80, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 26, 1, 0, 0),
+// 				(81, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 48, 2, 0, 0),
+// 				(82, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 22, 1, 0, 0),
+// 				(83, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 81, 3, 0, 0),
+// 				(84, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 15, 1, 0, 0),
+// 				(85, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 77, 3, 0, 0),
+// 				(86, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 92, 4, 0, 0),
+// 				(87, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 96, 4, 0, 0),
+// 				(88, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 25, 1, 0, 0),
+// 				(89, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 73, 3, 0, 0),
+// 				(90, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 119, 4, 0, 0),
+// 				(91, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 88, 3, 0, 0),
+// 				(92, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 28, 1, 0, 0),
+// 				(93, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 14, 1, 0, 0),
+// 				(94, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 128, 5, 0, 0),
+// 				(95, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 80, 3, 0, 0),
+// 				(96, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 63, 3, 0, 0),
+// 				(97, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 65, 3, 0, 0),
+// 				(98, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 7, 1, 0, 0),
+// 				(99, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 34, 2, 0, 0),
+// 				(100, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 47, 2, 0, 0),
+// 				(101, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 74, 3, 0, 0),
+// 				(102, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 85, 3, 0, 0),
+// 				(103, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 61, 3, 0, 0),
+// 				(104, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 107, 4, 0, 0),
+// 				(105, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 21, 1, 0, 0),
+// 				(106, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 122, 5, 0, 0),
+// 				(107, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 6, 1, 0, 0),
+// 				(108, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 49, 2, 0, 0),
+// 				(109, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 100, 4, 0, 0),
+// 				(110, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 55, 2, 0, 0),
+// 				(111, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 131, 5, 0, 0),
+// 				(112, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 113, 4, 0, 0),
+// 				(113, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 43, 2, 0, 0),
+// 				(114, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 53, 2, 0, 0),
+// 				(115, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 89, 3, 0, 0),
+// 				(116, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 76, 3, 0, 0),
+// 				(117, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 67, 3, 0, 0),
+// 				(118, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 111, 4, 0, 0),
+// 				(119, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 29, 1, 0, 0),
+// 				(120, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 11, 1, 0, 0),
+// 				(121, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 10, 1, 0, 0),
+// 				(122, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 102, 4, 0, 0),
+// 				(123, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 87, 3, 0, 0),
+// 				(124, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 27, 1, 0, 0),
+// 				(125, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 106, 4, 0, 0),
+// 				(126, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 69, 3, 0, 0),
+// 				(127, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 41, 2, 0, 0),
+// 				(128, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 129, 5, 0, 0),
+// 				(129, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 42, 2, 0, 0),
+// 				(130, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 56, 2, 0, 0),
+// 				(131, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 51, 2, 0, 0),
+// 				(132, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 39, 2, 0, 0),
+// 				(133, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 134, 5, 0, 0),
+// 				(134, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 72, 3, 0, 0),
+// 				(135, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 126, 5, 0, 0),
+// 				(136, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 82, 3, 0, 0),
+// 				(137, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 44, 2, 0, 0),
+// 				(138, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 93, 4, 0, 0),
+// 				(139, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 141, 5, 0, 0),
+// 				(140, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 95, 4, 0, 0),
+// 				(141, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 60, 2, 0, 0),
+// 				(142, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 90, 3, 0, 0),
+// 				(143, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 45, 2, 0, 0),
+// 				(144, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 36, 2, 0, 0),
+// 				(145, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 109, 4, 0, 0),
+// 				(146, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 31, 2, 0, 0),
+// 				(147, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 23, 1, 0, 0),
+// 				(148, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 86, 3, 0, 0),
+// 				(149, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 8, 1, 0, 0),
+// 				(150, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 137, 5, 0, 0),
+// 				(151, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 83, 3, 0, 0),
+// 				(152, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 50, 2, 0, 0),
+// 				(153, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 98, 4, 0, 0),
+// 				(154, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 124, 5, 0, 0),
+// 				(155, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 78, 3, 0, 0),
+// 				(156, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 146, 5, 0, 0),
+// 				(157, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 140, 5, 0, 0),
+// 				(158, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 2, 1, 0, 0),
+// 				(159, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 19, 1, 0, 0),
+// 				(160, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 97, 4, 0, 0),
+// 				(161, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 18, 1, 0, 0),
+// 				(162, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 66, 3, 0, 0),
+// 				(163, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 138, 5, 0, 0),
+// 				(164, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 17, 1, 0, 0),
+// 				(165, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 118, 4, 0, 0),
+// 				(166, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 20, 1, 0, 0),
+// 				(167, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 57, 2, 0, 0),
+// 				(168, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 79, 3, 0, 0),
+// 				(169, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 32, 2, 0, 0),
+// 				(170, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 46, 2, 0, 0),
+// 				(171, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 112, 4, 0, 0),
+// 				(172, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 12, 1, 0, 0),
+// 				(173, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 9, 1, 0, 0),
+// 				(174, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 84, 3, 0, 0),
+// 				(175, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 59, 2, 0, 0),
+// 				(176, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 5, 1, 0, 0),
+// 				(177, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 121, 5, 0, 0),
+// 				(178, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 115, 4, 0, 0),
+// 				(179, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 125, 5, 0, 0),
+// 				(180, 2, '', 1, 1, 700, 3, 0, '1000-01-01 00:00:00', 700, 0, '1000-01-01 00:00:00', '3000-01-01 00:00:00', 1, 0, 0, '1000-01-01 00:00:00', '1000-01-01 00:00:00', '0', '0', 0, 0, '2016-01-01 00:00:00', 14, '1000-01-01 00:00:00', 0, 0, 0, 0, 64, 3, 0, 0);
+
+// 				DROP TABLE IF EXISTS `due_war_setting`;
+// 				CREATE TABLE IF NOT EXISTS `due_war_setting` (
+// 						`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'auto',
+// 						`active` tinyint(1) NOT NULL COMMENT 'row setting',
+// 						`moneda` varchar(3) NOT NULL DEFAULT 'BON',
+// 						`nivel_grad` int(11) NOT NULL DEFAULT '5000' COMMENT 'la ce bonus avansezi in grad de atac/aparare',
+// 						`crestere_pret_arme` int(11) NOT NULL DEFAULT '10' COMMENT '% cu cat creste pretul armelor in f de grad',
+// 						`nivel_pericol` int(11) NOT NULL DEFAULT '10000' COMMENT 'la ce bonus avansezi in grad de pericol atac/aparare',
+// 						`crestere_pret_upgrade` int(11) NOT NULL DEFAULT '10' COMMENT '% cu cat creste pretul upgrade-urilor in f de nivel pericol',
+// 						`atacuri` int(11) NOT NULL DEFAULT '3' COMMENT 'Atacuri primite la 15 min',
+// 						`atacuri_bonusuri` int(11) NOT NULL DEFAULT '6' COMMENT 'Cate bonusuri de atac poti cumpara',
+// 						`atacuri_pe_bonus` int(11) NOT NULL DEFAULT '3' COMMENT 'Cate atacuri la 15 min poti la fiecare bonus',
+// 						`atacuri_pret_bonus` int(11) NOT NULL DEFAULT '200000' COMMENT 'Pretul unui bonus de atacuri',
+// 						`decor_pret` int(11) NOT NULL DEFAULT '200000' COMMENT 'Cat costa o decoratie',
+// 						`decor_atac_bonus` int(11) NOT NULL DEFAULT '400' COMMENT 'ce bonus primesti la fiecare decoratie atac cumparata',
+// 						`decor_apara_bonus` int(11) NOT NULL DEFAULT '250' COMMENT 'ce bonus primesti la fiecare decoratie aparare cumparata',
+// 						`atacuri_max` int(11) NOT NULL DEFAULT '700' COMMENT 'Nr. maxim de atacuri acumulate, fara bonus',
+// 						`atacuri_max_bonusuri` int(11) NOT NULL DEFAULT '2' COMMENT 'cate bonusuri de atacuri maxime poti cumpara',
+// 						`atacuri_max_pe_bonus` int(11) NOT NULL DEFAULT '300' COMMENT 'Cate atacuri primesti pe bonus',
+// 						`atacuri_max_pret_bonus` int(11) NOT NULL DEFAULT '300000' COMMENT 'Cat costa bonus max atacuri',
+// 						`bani_pe_soldat` int(11) NOT NULL DEFAULT '4' COMMENT 'cati bani primesti pt fiecare soldat',
+// 						`soldati_max_pe_zi` int(11) NOT NULL DEFAULT '50' COMMENT 'cati poti recruta maxim la miezul noptii',
+// 						`vot_bonusuri` int(11) NOT NULL DEFAULT '2' COMMENT 'nr. bonusuri de voturi pe ora',
+// 						`vot_pret_bonus` int(11) NOT NULL DEFAULT '150000' COMMENT 'Cat costa un bonus de vot. Stop vot e dublu',
+// 						`soldat_pe_zi_pret` int(11) DEFAULT '50000' COMMENT 'Cat costa un upgrade de 1 soldat pe zi',
+// 						`loto_pret_bilet` int(11) NOT NULL DEFAULT '2000' COMMENT 'Cat costa un bilet de loto',
+// 						`loto_max_bilete` int(11) NOT NULL DEFAULT '25' COMMENT 'Cate bilete poate cumpara un jucator pe saptamana',
+// 						`loto_max_castigatori` int(11) NOT NULL DEFAULT '10' COMMENT 'Nr. maxim de castigatori',
+// 						`seif_depuneri` int(11) NOT NULL DEFAULT '10' COMMENT 'La cate depuneri se reseteaza la incep sapt',
+// 						`seif_dep_bonusuri` int(11) NOT NULL DEFAULT '4' COMMENT 'Nr bonusuri depuneri',
+// 						`seif_dep_pe_bonus` int(11) NOT NULL DEFAULT '15' COMMENT 'Cate depuneri promesti bonus',
+// 						`seif_dep_pret_bonus` int(11) NOT NULL DEFAULT '300000' COMMENT 'Cat costa bonus depuneri',
+// 						`seif_extragere` int(11) NOT NULL DEFAULT '100000' COMMENT 'Cat poti extrage pe ora',
+// 						`card` int(11) NOT NULL DEFAULT '300000' COMMENT 'Cat costa un card',
+// 						`atac_dublu_pz` int(11) NOT NULL DEFAULT '200000' COMMENT 'Cat costa bonusul de atac dublu pe zi',
+// 						UNIQUE KEY `id` (`id`)
+// 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+
+// 						INSERT INTO `due_war_setting` (`id`, `active`, `moneda`, `nivel_grad`, `crestere_pret_arme`, `nivel_pericol`, `crestere_pret_upgrade`, `atacuri`, `atacuri_bonusuri`, `atacuri_pe_bonus`, `atacuri_pret_bonus`, `decor_pret`, `decor_atac_bonus`, `decor_apara_bonus`, `atacuri_max`, `atacuri_max_bonusuri`, `atacuri_max_pe_bonus`, `atacuri_max_pret_bonus`, `bani_pe_soldat`, `soldati_max_pe_zi`, `vot_bonusuri`, `vot_pret_bonus`, `soldat_pe_zi_pret`, `loto_pret_bilet`, `loto_max_bilete`, `loto_max_castigatori`, `seif_depuneri`, `seif_dep_bonusuri`, `seif_dep_pe_bonus`, `seif_dep_pret_bonus`, `seif_extragere`, `card`, `atac_dublu_pz`) VALUES
+// 						(1, 1, 'BON', 5000, 10, 10000, 10, 3, 7, 3, 200000, 200000, 400, 250, 700, 2, 300, 300000, 4, 50, 2, 150000, 50000, 2000, 25, 10, 10, 4, 15, 300000, 100000, 300000, 200000);

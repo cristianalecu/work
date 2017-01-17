@@ -1,0 +1,37 @@
+ div#main  div.view div.view-header table.views-table tbody tr.odd 
+{   background-color: #FFFFFF;}
+
+
+div.vertical-tabs {
+    margin: 1em 0 1em 10em;
+}
+div .vertical-tabs ul.vertical-tabs-list {
+	    width: 10em;
+	    margin: -1px 0 -1px -10em;
+}
+div.vertical-tabs fieldset.vertical-tabs-pane {
+	padding:0px;
+}
+div.vertical-tabs table td {
+    //padding: 0;
+}
+
+div#block-system-main
+{
+float:none;
+}
+
+div#header 
+{
+height:80px;
+}
+
+body.html
+{
+background: none;
+}
+div.field-type-datetime.field-name-field-data-document.field-widget-date-popup
+{
+float:right;
+}
+

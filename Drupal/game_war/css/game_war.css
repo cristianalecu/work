@@ -1,0 +1,21 @@
+ div#main  div.view div.view-header table.views-table tbody tr.odd 
+{   background-color: #FFFFFF;}
+
+div .view-id-traduceri h1 {
+  -webkit-margin-before: 0.1em;
+  -webkit-margin-after: 0.1em;
+  margin: 5px;
+}
+div.vertical-tabs {
+    margin: 1em 0 1em 10em;
+}
+div .vertical-tabs ul.vertical-tabs-list {
+	    width: 10em;
+	    margin: -1px 0 -1px -10em;
+}
+div.vertical-tabs fieldset.vertical-tabs-pane {
+	padding:0px;
+}
+div.vertical-tabs table td {
+    //padding: 0;
+}
