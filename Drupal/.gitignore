@@ -1,7 +1,11 @@
 # Ignore all.
 /*
+
+# except
 !.gitignore
 !drupal7
+
+#but all ...
 drupal7/*
 !drupal7/sites
 drupal7/sites/*
