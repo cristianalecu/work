@@ -1,0 +1,32 @@
+; $Id$
+name = Game war warm
+description = Tableness theme for Drupal CMS for game war.
+core = 7.x
+engine = phptemplate
+base theme = game_war
+screenshot = screenshot.jpg
+
+; Css files
+stylesheets[all][] = css/styles.css
+
+; Regions
+regions[search_box] = Search box
+regions[sidebar_first] = Left sidebar
+regions[sidebar_second] = Right sidebar
+regions[content] = Content
+regions[help] = Help
+regions[footer] = Footer
+regions[front_top] = Front top
+
+; Features
+features[] = logo
+features[] = slogan
+features[] = favicon
+features[] = main_menu
+features[] = secondary_menu
+; Information added by drupal.org packaging script on 2011-10-24
+version = "7.x-1.1"
+core = "7.x"
+project = "game_war"
+datestamp = "1319477732"
+

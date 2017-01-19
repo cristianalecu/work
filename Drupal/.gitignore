@@ -1,0 +1,26 @@
+# Ignore all.
+/*
+!.gitignore
+!drupal7
+drupal7/*
+!drupal7/sites
+drupal7/sites/*
+!drupal7/sites/all
+drupal7/sites/all/*
+
+!drupal7/sites/all/modules
+!drupal7/sites/all/themes
+drupal7/sites/all/modules/*
+drupal7/sites/all/themes/*
+
+
+!drupal7/sites/all/modules/game_war
+!drupal7/sites/all/modules/game_war/*
+!drupal7/sites/all/modules/gestiune
+!drupal7/sites/all/modules/gestiune/*
+
+!drupal7/sites/all/themes/game_war
+!drupal7/sites/all/themes/game_war/*
+
+
+

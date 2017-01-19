@@ -311,26 +311,31 @@ function game_war_get_userdata($uid = NULL) {
 global $user;
 global $war_data;
 
-	if(!isset($uid))
+	if(!isset($uid) )
 		$uid = $user->uid;
-
-	if(isset($war_data))
+	
+	if($uid == $user->uid)
 	{
-		if($war_data['uid'] == $uid)
-			return;
-	}
-	else {
-		$sSql = "SELECT * FROM {user_gamedata} WHERE uid=$uid";
-		$war_data = db_query($sSql)->fetchAssoc();
-		if(! is_array($war_data))
+		if(isset($war_data))
 		{
-			$sSql = "SELECT name FROM {users} WHERE uid=$uid";
-			$usr = db_query($sSql)->fetchAssoc();
-			game_war_insert_userdata($uid, $usr['name']);
-			unset($war_data);
-			game_war_get_userdata($uid);
+			if($war_data['uid'] == $uid)
+				return $war_data;
 		}
 	}
+
+	$sSql = "SELECT * FROM {user_gamedata} WHERE uid=$uid";
+	$usr_gamedata = db_query($sSql)->fetchAssoc();
+	if(! is_array($usr_gamedata))
+	{
+		$sSql = "SELECT name FROM {users} WHERE uid=$uid";
+		$usr = db_query($sSql)->fetchAssoc();
+		game_war_insert_userdata($uid, $usr['name']);
+		$usr_gamedata = game_war_get_userdata($uid);
+	}
+	if($uid == $user->uid)
+		$war_data = $usr_gamedata;
+	
+	return $usr_gamedata;
 }
 
 function game_war_insert_userdata($uid = NULL, $name=NULL) {

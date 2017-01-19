@@ -13,9 +13,17 @@
  * @see game_war_form_ataca_validate()
  */
 function game_war_form_atac($form, &$form_state, $edit = array(), $usr = NULL) {
-	global $user;
+global $user;
+global $war_data;
+global $game_settings;
 
 	$uid = $user->uid;
+	if($usr == null)
+	{
+		$usr = $GLOBALS['_GET']['q'];
+		$ux = explode("/", $usr);
+		$usr = $ux[2];
+	}
 
 	if (!isset($form_state['war_atac'])) {
 		$war_atac = is_object($edit) ? $edit : (object) $edit;
@@ -34,18 +42,87 @@ function game_war_form_atac($form, &$form_state, $edit = array(), $usr = NULL) {
 			'#title' => t('Atac'),
 			'#collapsible' => FALSE,
 	);
+	$usr_gamedata = game_war_get_userdata($usr);
+	game_war_get_userdata($uid);
+	game_war_get_gamesettings();
+	$usrx = user_load($usr, FALSE);
+	$prefix = '<table class="sticky-table"><tbody><tr><td colspan=3 style="text-align: center;">' . $usr_gamedata['name'] . '</td></tr>';
+	$poza = '<img style="max-width:98px;" src="' . $GLOBALS['base_url'] . '/defimg.jpg">';
+	if(!isset($usrx->picture))
+	{
+		$account = new StdClass();
+		$account->picture = $usrx->picture;
+		$account->uid = $usrx->uid;
+		$account->name = $usrx->name;
+		$param = array('account' => $account);
+		template_preprocess_user_picture($param);
+		$poza = $param['user_picture'];
+	}
+	$atac = '';
+	for($i = 0; $i<10; $i++) {
+		if(($i+1)*$game_settings['nivel_grad'] < $usr_gamedata['bonus_atac'])
+			$atac .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/silver_star_medal.png">';
+		else
+			$atac .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/empty_star_medal.png">';
+	}
+	$aparare = '';
+	for($i = 0; $i<10; $i++) {
+		if(($i+1)*$game_settings['nivel_grad'] < $usr_gamedata['bonus_aparare'])
+			$aparare .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/bronze_star_medal.png">';
+		else
+			$aparare .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/empty_star_medal.png">';
+	}
+	$pericol = intval($usr_gamedata['bonus_atac'] / $game_settings['nivel_pericol']) . ' <img style="max-width:30px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/star-medal.png" title="0 Atac">' .
+			intval($usr_gamedata['bonus_aparare'] / $game_settings['nivel_pericol']) . ' <img style="max-width:50px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/star_sheriff.png" title="0 Aparare">';
+	$prefix .= '<tr><td rowspan=7>' . $poza . '</td><td>' . 'Cazarma:' . '</td><td><b>' . $usr_gamedata['soldati'] . '</b> ' . t('Soldati') . '</td></tr>';
+	$prefix .= '<tr><td>' . 'Bani:' . '</td><td><b>' . $usr_gamedata['bani'] . '</b> ' . $game_settings['moneda'] . '</td></tr>';
+	$prefix .= '<tr><td>' . 'Atac:' . '</td><td>' . $atac . '</td></tr>';
+	$prefix .= '<tr><td>' . 'Aparare:' . '</td><td>' . $aparare . '</td></tr>';
+	$prefix .= '<tr><td>' . 'Pericol:' . '</td><td>' . $pericol . '</td></tr>';
+	$suffix = '</tbody></table>' ;	
+	
+	$sSql = "select count(*) cnt from {user_lupte} where uid = $uid and uid2 = $usr";
+	$result = db_query($sSql);
+	foreach ($result as $rs)
+	{
+		$lupteazi = $rs->cnt;
+	}
+	if($lupteazi >= 7)
+		$suffix .= "Poti ataca de maxim 7 ori pe zi un jucator";
+	else if ($usr_gamedata['soldati'] > 3 * $war_data['soldati'])
+		$suffix .= "Nu poti ataca un jucator care are mai mult de 3 ori numarul tau de soldati ";
+	else if ($usr_gamedata['soldati'] < ($war_data['soldati'] / 3))
+		$suffix .= "Nu poti ataca un jucator care are mai putin de 1/3 din soldatii tai ";
+	else 
+	{
+		$atac_submut = array(
+				'#name' => 'date_atace',
+				'#type' => 'submit',
+				'#value' => t('Ataca'),
+				'#suffix' => "<br>",
+		);
+	}
 	$form['tab_atac']['atac_table'] = array(
 			'#type' => 'hidden',
 			'#value' => 1,
-			'#prefix' => 'a',
-			'#suffix' => ' x',
+			'#prefix' => $prefix,
+			'#suffix' => $suffix,
 	);
-	$form['tab_atac']['submit'] = array(
-			'#name' => 'date_atace',
-			'#type' => 'submit',
-			'#value' => t('Ataca'),
-			'#suffix' => "<br>",
-	);
+	if(isset($atac_submut))
+	{
+		$form['tab_atac']['atacuri'] = array(
+				'#name' => 'atacuri',
+				'#type' => 'textfield',
+				'#title' => t('Atacuri Folosite'),
+				'#maxlength' => 2,
+				'#size' => 2,
+				'#required' => FALSE,
+				'#default_value' => '10',
+    		    '#description' => 'Cate atacuri trimiteti. Maxim 10. Mai aveti ' . $war_data['atacuri'],
+				
+		);
+		$form['tab_atac']['submit'] = $atac_submut;
+	}
 
 	$form['#validate'][] = 'game_war_form_atac_validate';
 
@@ -87,13 +164,13 @@ function game_war_form_atac_submit($form, &$form_state) {
 	game_war_get_userdata();
 	game_war_get_gamesettings();
 
-	if (substr($form_state['triggering_element']['#name'],0,6) == 'cumpar') {
+	if (substr($form_state['triggering_element']['#name'],0,6) == 'cumpar') { //date_atace
 		for($i = 1; $i<$form_state['values']['armacount']; $i++)
 		{
 			if($form_state['triggering_element']['#name'] == 'cumparma_' . $i)
 			{
 				$arma = explode('|', $form_state['values']['arma' . $i]);
-				if($user->war_data['bani'] >= $arma[3])
+				if($war_data['bani'] >= $arma[3])
 				{
 					db_query("update {user_gamedata} set bani=bani-$arma[3] where uid=$uid");
 					if(isset($arma[4]))
@@ -389,6 +466,8 @@ $names = array_merge($names, array('barza','carly','dvdy','garon','zum','molozo'
   }
   else if($form_state['values']['usrlevel'] == 3) {
   	game_war_add_users_gamedata();
+  	$sSql = "update {user_gamedata} g set g.name = (select u.name from {users} u where u.uid=g.uid)";
+  	db_query($sSql);
   }
   else if($form_state['values']['usrlevel'] == 100) {
   	$sSql = "delete from {user_weapons} where uid= $uid";
@@ -549,7 +628,7 @@ function game_war_form_alianta_submit($form, &$form_state) {
 			if($form_state['triggering_element']['#name'] == 'cumparma_' . $i)
 			{
 				$arma = explode('|', $form_state['values']['arma' . $i]);
-				if($user->war_data['bani'] >= $arma[3])
+				if($war_data['bani'] >= $arma[3])
 				{
 					db_query("update {user_gamedata} set bani=bani-$arma[3] where uid=$uid");
 					if(isset($arma[4]))
@@ -752,7 +831,7 @@ function game_war_form_store_submit($form, &$form_state) {
 			if($form_state['triggering_element']['#name'] == 'cumparma_' . $i)
 			{
 				$arma = explode('|', $form_state['values']['arma' . $i]);
-				if($user->war_data['bani'] >= $arma[3])
+				if($war_data['bani'] >= $arma[3])
 				{
 					db_query("update {user_gamedata} set bani=bani-$arma[3] where uid=$uid");
 					if(isset($arma[4]))
@@ -773,6 +852,26 @@ function game_war_form_store_submit($form, &$form_state) {
 	}
 }
 
+function game_war_get_upgrades_table() 
+{
+	global $user;
+	global $war_data;
+	global $game_settings;
+	
+	$sHTML = '<table class="sticky-table"><tbody><tr><td colspan=4 style="text-align: center;">Upgrades</td></tr>';
+	$sHTML .= '<tr><td>Tip</td><td>Numar</td><td>Valabil</td><td>Maxim</td></tr>';
+	$sHTML .= '<tr><td>Numar mercenari primiti automat la 24 h</td><td>' . $war_data['soldatiph'] . '</td><td>Nelimitat</td><td>' . $game_settings['soldati_max_pe_zi'] . '</td></tr>';
+	if($war_data['atacuri_bonus'])
+		$sHTML .= '<tr><td>Numar atacuri primite automat la 15 min</td><td>' . $war_data['atacuriph'] . ' din care bonus ' . $war_data['atacuri_bonus'] . 
+	              '</td><td>' . date("Y-m-d H:i:s",strtotime($war_data['atacuri_bonus_expire'])) . '</td><td>' . ($game_settings['atacuri']+$game_settings['atacuri_bonusuri']*$game_settings['atacuri_pe_bonus']) . '</td></tr>';
+	else
+		$sHTML .= '<tr><td>Numar atacuri primite automat la 15 min</td><td>' . $war_data['atacuriph'] . 
+	              '</td><td>Nelimitat</td><td>' . ($game_settings['atacuri']+$game_settings['atacuri_bonusuri']*$game_settings['atacuri_pe_bonus']) . '</td></tr>';
+	$sHTML .= '</tbody></table>';
+	
+	return $sHTML;
+}
+	
 /**
  * Form builder for the war game store editing form.
  *
@@ -798,7 +897,7 @@ global $game_settings;
 		$war_status = $form_state['war_status'];
 	}
 
-	// @todo Legacy support. Modules are encouraged to access the entity using
+	// @todo Legacy support. Modules are encouraged to access the entity using 
 	//   $form_state. Remove in Drupal 8.
 	$form['#war_status'] = $form_state['war_status'];
 
@@ -810,8 +909,8 @@ global $game_settings;
 	);
 
 	game_war_get_userdata($user->uid);
-    $prefix = '<table class="sticky-table"><tbody><tr><td colspan=3>' . $user->name . '</td></tr>';
-    $poza = ' ';
+    $prefix = '<table class="sticky-table"><tbody><tr><td colspan=3 style="text-align: center;">' . $user->name . '</td></tr>';
+    $poza = '<img style="max-width:98px;" src="' . $GLOBALS['base_url'] . '/defimg.jpg">';
     if($user->picture > 0)
     {
     	$account = new StdClass();
@@ -824,20 +923,28 @@ global $game_settings;
     }
     $atac = '';
     for($i = 0; $i<10; $i++) {
-    	$atac .= '<img style="max-width:20px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/empty_star_medal.png">';
+    	if(($i+1)*$game_settings['nivel_grad'] < $war_data['bonus_atac'])
+    		$atac .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/silver_star_medal.png">';
+    	else
+    		$atac .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/empty_star_medal.png">';
     }
     $aparare = '';
     for($i = 0; $i<10; $i++) {
-    	$aparare .= '<img style="max-width:20px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/empty_star_medal.png">';
+    	if(($i+1)*$game_settings['nivel_grad'] < $war_data['bonus_aparare'])
+    		$aparare .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/bronze_star_medal.png">';
+    	else
+    		$aparare .= '<img style="max-width:20px;" title="Multiplu de ' . $game_settings['nivel_grad'] . '" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/empty_star_medal.png">';
     }
-    $pericol = '0 <img style="max-width:30px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/star-medal.png" title="0 Atac">' .
-    '0 <img style="max-width:50px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/star_sheriff.png" title="0 Aparare">';
-    $prefix .= '<tr><td rowspan=5>' . $poza . '</td><td>' . 'Cazarma:' . '</td><td>' . '0 ' . t('Soldati') . '</td></tr>';
-    $prefix .= '<tr><td>' . 'Buget:' . '</td><td>' . '0 ' . $game_settings['moneda'] . '</td></tr>';
+    $pericol = intval($war_data['bonus_atac'] / $game_settings['nivel_pericol']) . ' <img style="max-width:30px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/star-medal.png" title="0 Atac">' .
+    intval($war_data['bonus_aparare'] / $game_settings['nivel_pericol']) . ' <img style="max-width:50px;" src="' . $GLOBALS['base_url'] . '/' . variable_get('file_public_path', 'sites/duel.dinviselemele.ro/files') . '/img/star_sheriff.png" title="0 Aparare">';
+    $prefix .= '<tr><td rowspan=7>' . $poza . '</td><td>' . 'Cazarma:' . '</td><td><b>' . $war_data['soldati'] . '</b> ' . t('Soldati') . ' (' . $war_data['soldatiph'] . ' pe zi)</td></tr>';
+    $prefix .= '<tr><td>' . 'Buget:' . '</td><td><b title=" 4 * soldati la 15 min">' . $war_data['bani'] . '</b> ' . $game_settings['moneda'] . '<br> seif:' . $war_data['seif'] . ' ' . $game_settings['moneda'] . '<br> total:' . ($war_data['bani']+$war_data['seif']) . ' ' . $game_settings['moneda'] . '</td></tr>';
+    $prefix .= '<tr><td>' . 'Bonus:' . '</td><td>' . $war_data['bonus_atac'] . ' - ' . $war_data['bonus_aparare'] . '</td></tr>';
+    $prefix .= '<tr><td>' . 'Atacuri:' . '</td><td>' . $war_data['atacuri'] . ' / ' . $war_data['bonus_aparare'] . '</td></tr>';
     $prefix .= '<tr><td>' . 'Atac:' . '</td><td>' . $atac . '</td></tr>';
     $prefix .= '<tr><td>' . 'Aparare:' . '</td><td>' . $aparare . '</td></tr>';
     $prefix .= '<tr><td>' . 'Pericol:' . '</td><td>' . $pericol . '</td></tr>';
-    $suffix = '</tbody></table>';
+    $suffix = '</tbody></table>' . game_war_get_upgrades_table();
     //<img typeof="foaf:Image" src="http://localhost/d7/sites/duel.dinviselemele.ro/files/styles/thumbnail/public/pictures/picture-17-1479227257.jpg?itok=hSrMPwLH" alt="imaginea utilizatorului babau" title="imaginea utilizatorului babau" />
 // 	$sSql  = "SELECT n.title, f1.field_tip_arma_value tip_arma, f2.field_puncte_value puncte, f3.field_pre__value pret, w.nr, n.nid ";
 // 	$sSql .= " FROM {node} n LEFT OUTER JOIN {user_weapons} w ON w.uid=$uid and w.tip=n.nid, {field_data_field_tip_arma} f1 , {field_data_field_puncte} f2 , {field_data_field_pre_} f3 ";
