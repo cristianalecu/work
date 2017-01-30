@@ -1,14 +1,20 @@
 import { NgModule, ErrorHandler } from '@angular/core';
 import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
 import { MyApp } from './app.component';
-import { Page1 } from '../pages/page1/page1';
-import { Page2 } from '../pages/page2/page2';
+import { PageStartup } from '../pages/pagestartup/pagestartup';
+import { PagePlay } from '../pages/pageplay/pageplay';
+import { PageNivel } from '../pages/pagenivel/pagenivel';
+import { PageStatistica } from '../pages/pagestatistica/pagestatistica';
+import { PageSettings } from '../pages/pagesettings/pagesettings';
 
 @NgModule({
   declarations: [
     MyApp,
-    Page1,
-    Page2
+    PageStartup,
+    PagePlay,
+    PageNivel,
+    PageStatistica,
+    PageSettings
   ],
   imports: [
     IonicModule.forRoot(MyApp)
@@ -16,8 +22,11 @@ import { Page2 } from '../pages/page2/page2';
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
-    Page1,
-    Page2
+    PageStartup,
+    PagePlay,
+    PageNivel,
+    PageStatistica,
+    PageSettings
   ],
   providers: [{provide: ErrorHandler, useClass: IonicErrorHandler}]
 })

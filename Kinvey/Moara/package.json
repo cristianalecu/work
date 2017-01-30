@@ -1,7 +1,7 @@
 {
-  "name": "ionic-hello-world",
-  "author": "Ionic Framework",
-  "homepage": "http://ionicframework.com/",
+  "name": "moara-tintar",
+  "author": "ACristianSoft",
+  "homepage": "http://itcomplace.ro/",
   "private": true,
   "scripts": {
     "clean": "ionic-app-scripts clean",
@@ -40,5 +40,5 @@
     "ionic-plugin-keyboard"
   ],
   "cordovaPlatforms": [],
-  "description": "Moara: An Ionic project"
+  "description": "Moara: Joc de societate, pe tablă, numit și Țintar"
 }

@@ -2,8 +2,11 @@ import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
 import { StatusBar, Splashscreen } from 'ionic-native';
 
-import { Page1 } from '../pages/page1/page1';
-import { Page2 } from '../pages/page2/page2';
+import { PageStartup } from '../pages/pagestartup/pagestartup';
+import { PagePlay } from '../pages/pageplay/pageplay'; 
+import { PageNivel } from '../pages/pagenivel/pagenivel';
+import { PageStatistica } from '../pages/pagestatistica/pagestatistica';
+import { PageSettings } from '../pages/pagesettings/pagesettings';
 
 
 @Component({
@@ -12,7 +15,7 @@ import { Page2 } from '../pages/page2/page2';
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
 
-  rootPage: any = Page1;
+  rootPage: any = PageStartup;
 
   pages: Array<{title: string, component: any}>;
 
@@ -21,8 +24,11 @@ export class MyApp {
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Page One', component: Page1 },
-      { title: 'Page Two', component: Page2 }
+      { title: 'Start', component: PageStartup },
+      { title: 'Joacă', component: PagePlay },
+      { title: 'Nivel', component: PageNivel },
+      { title: 'Statistica', component: PageStatistica },
+      { title: 'Setări', component: PageSettings }
     ];
 
   }
