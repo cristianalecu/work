@@ -1,0 +1,24 @@
+ div#main  div.view div.view-header table.views-table tbody tr.odd 
+{   background-color: #FFFFFF;}
+
+div .view-id-traduceri h1 {
+  -webkit-margin-before: 0.1em;
+  -webkit-margin-after: 0.1em;
+  margin: 5px;
+}
+
+div .view-id-traduceri h2 {
+  -webkit-margin-before: 0.1em;
+  -webkit-margin-after: 0.1em;
+  margin: 5px;
+}
+div .view-id-traduceri h3 {
+  -webkit-margin-before: 0.1em;
+  -webkit-margin-after: 0.1em;
+  margin: 5px;
+}
+div .view-id-traduceri h4 {
+  -webkit-margin-before: 0.1em;
+  -webkit-margin-after: 0.1em;
+  margin: 5px;
+}

@@ -1,0 +1,13 @@
+name = biblia
+core = 7.x
+package = Features
+version = 7.x-1.0
+project = biblia
+dependencies[] = ctools
+dependencies[] = features
+dependencies[] = taxonomy
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:1
+features[taxonomy][] = traduceri
+features[views_view][] = traduceri

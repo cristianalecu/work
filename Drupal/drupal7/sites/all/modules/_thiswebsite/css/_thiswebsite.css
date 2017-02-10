@@ -1,0 +1,72 @@
+#edit-comment-body-und-0-format
+{
+  display:none;
+}
+
+.field-name-field-tip-utilizator 
+{
+ display:none;
+}
+
+#oferta-node-form .form-item-title,
+#node_anunt_form_group_anunt_content .form-item-title,
+#oferta-personalizat-node-form #edit-field-pentru-anun-,
+#node_oferta_personalizat__form_group_oferta_content #edit-field-pentru-anun-
+{
+ display:none;
+}
+
+#edit-locale, #edit-timezone
+{
+  display:none;
+}
+
+
+.node-form .text-format-wrapper .filter-wrapper
+{
+ display:none;
+}
+
+//dossier
+
+#edit-body-und-0-format 
+{
+ display: none;
+}
+
+#header #logo 
+{
+float:left;
+}
+
+
+//GORDON
+html.js body.html div#page div#container div#main.contextual-links-region div.region div#block-system-main div.block div.content div.view-lista-articole div.view-content div.views-row div.views-field-nid
+{
+ display: inline;
+ float: left;
+}
+
+
+#block-locale-language
+{
+  position: absolute;
+  right: 300px;
+}
+#block-locale-language a
+{
+  color: black;
+}
+#block-locale-language a.active
+{
+  color: white;
+}
+
+#header-top #site-slogan {
+    color: #FFFFFF;
+    float: left;
+    font-family: Georgia;
+    font-size: 25px;
+    margin: 25px 0 0 25px;
+    max-width: 800px;
+}

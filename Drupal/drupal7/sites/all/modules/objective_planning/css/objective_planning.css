@@ -1,0 +1,27 @@
+#edit-field-obj-emotions-und-0-format {
+ display: none;
+}
+
+#edit-field-obj-person-und-0-format {
+ display: none;
+}
+
+#edit-field-obj-study-und-0-format {
+ display: none;
+}
+
+#edit-field-obj-plansteps-und-0-format {
+ display: none;
+}
+
+#block-system-user-menu {
+    float: right;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    width: 200px;
+}
+
+#view-id-budget_incomes-page {
+float:left;
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Planning books to read feature.
+ */
+
+include_once('planning_books_to_read.features.inc');

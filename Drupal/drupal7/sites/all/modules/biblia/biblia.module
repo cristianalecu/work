@@ -1,0 +1,2212 @@
+<?php
+/**
+ * @file
+ * Code for the biblia feature.
+ */
+
+include_once 'biblia.features.inc';
+
+//SELECT * FROM bbl_verset WHERE ID_traducere=2 and  titlu=1
+//31102 versete
+//2020 titluri
+//66 carti
+
+// insert into bbl_verset4 (SELECT * FROM `bbl_verset` WHERE `ID_traducere`=4 and `titlu` in (0,1) order by `ID_carte`,`capitol`,`ID_verset`)
+
+// delete from bbl_verset4;
+// insert into bbl_verset4 (SELECT * FROM `bbl_verset` WHERE `ID_traducere`=4 order by `ID_carte`,`capitol`,`ID_verset`,`nr_verset`);
+//
+//SELECT b2.ID_carte , b2.capitol , b2.ID_verset , b2.nr_verset , b4.nr_verset nr_verset2, b2.titlu, b4.titlu titlu2, b2.text, b4.text text2 FROM bbl_verset2 b2 
+//left outer join bbl_verset4 b4 
+//on b2.ID_carte = b4.ID_carte and b2.capitol = b4.capitol  and b2.ID_verset = b4.ID_verset 
+//where b2.ID_carte = 1 and b2.capitol=1 and STRCMP(b2.text, b4.text)!=0
+
+//update `bbl_verset2` set ID_verset = ID_verset + capitol*1000
+//	update bbl_verset4 set ID_verset = ID_verset + 1 WHERE ID_traducere=4 and ID_carte =1 and capitol=1 
+
+//select * from (
+//
+//SELECT b2.ID_carte , b2.capitol , b2.ID_verset , b2.nr_verset , b4.nr_verset nr_verset2, b2.titlu, b4.titlu titlu2, b2.text, b4.text text2 FROM bbl_verset2 b2 
+//left outer join bbl_verset4 b4 
+//on b2.ID_carte = b4.ID_carte and b2.capitol = b4.capitol  and b2.ID_verset = b4.ID_verset and b2.ID_carte = 1 
+//UNION
+//SELECT b2.ID_carte , b2.capitol , b2.ID_verset , b2.nr_verset , b4.nr_verset nr_verset2, b2.titlu, b4.titlu titlu2, b2.text, b4.text text2 FROM bbl_verset4 b4 
+//left outer join bbl_verset2 b2 
+//on b2.ID_carte = b4.ID_carte and b2.capitol = b4.capitol  and b2.ID_verset = b4.ID_verset and b4.ID_carte = 1  
+//)
+//order by ID_carte, capitol , ID_verset
+//  
+
+
+//select * from (
+//
+//SELECT b2.ID_carte , b2.capitol , b2.ID_verset , b2.nr_verset , b4.nr_verset nr_verset2, b2.titlu, b4.titlu titlu2, b2.text, b4.text text2 FROM bbl_verset2 b2 
+//left outer join bbl_verset4 b4 
+//on b2.ID_carte = b4.ID_carte and b2.capitol = b4.capitol  and b2.ID_verset = b4.ID_verset and b2.ID_carte = 1 
+//UNION
+//SELECT b4_.ID_carte , b4_.capitol , b4_.ID_verset , b2_.nr_verset , b4_.nr_verset nr_verset2, b2_.titlu, b4_.titlu titlu2, b2_.text, b4_.text text2 FROM bbl_verset4 b4_ 
+//left outer join bbl_verset2 b2_ 
+//on b2_.ID_carte = b4_.ID_carte and b2_.capitol = b4_.capitol  and b2_.ID_verset = b4_.ID_verset and b4_.ID_carte = 1  
+//) x
+//order by ID_carte, capitol , ID_verset
+
+
+
+//function print_r_tree($data)
+//{    // capture the output of print_r
+//    $out = print_r($data, true);
+//    // replace something like '[element] => <newline> (' with <a href="javascript:toggleDisplay('...');">...</a><div id="..." style="display: none;">
+//    $out = preg_replace('/([ \t]*)(\[[^\]]+\][ \t]*\=\>[ \t]*[a-z0-9 \t_]+)\n[ \t]*\(/iUe',"'\\1<a href=\"javascript:toggleDisplay(\''.(\$id = substr(md5(rand().'\\0'), 0, 7)).'\');\">\\2</a><div id=\"'.\$id.'\" style=\"display: none;\">'", $out);
+//    // replace ')' on its own on a new line (surrounded by whitespace is ok) with '</div>
+//    $out = preg_replace('/^\s*\)\s*$/m', '</div>', $out);
+//    // print the javascript function toggleDisplay() and then the transformed output
+//    echo '<script language="Javascript">function toggleDisplay(id) { document.getElementById(id).style.display = (document.getElementById(id).style.display == "block") ? "none" : "block"; }</script>'."\n$out";
+//}
+//      //print print_r_tree($view->args,true);
+//if(count($view->args) != 2 )       $ids_trad = Array(6 , 2);
+//else         $ids_trad = Array(intval($view->args[0]) , intval($view->args[1]));
+//     //print print_r_tree($ids_trad,true);
+//$sql = "select * from _bbl_traduceri where id_traducere in (" . implode(',' , $ids_trad) . ")" ;
+//    //print print_r_tree($sql,true);
+//$result = db_query($sql); 
+//$ids_trad_tst = Array();
+//foreach ($result as $record) {
+// $ids_trad_tst[] = $record->ID_traducere;
+//}
+//if(count($ids_trad_tst) != 2 )       $ids_trad = Array(6 , 2);
+//   //print print_r_tree($ids_trad,true);
+//$sql = "select * from _bbl_traduceri where id_traducere in (" . implode(',' , $ids_trad) . ")" ;
+//$result = db_query($sql); 
+//$traduceri = Array( $ids_trad[0]=> $ids_trad[0], $ids_trad[1]=> $ids_trad[1]);
+//foreach ($result as $record) {
+// $traduceri[$record->ID_traducere] = $record->traducere;
+//}
+//   //print print_r_tree($traduceri,true);
+//$sql = "select * from (
+//SELECT c1.id_traducere , c2.id_traducere id_traducere2, c1.id_carte, c2.id_carte id_carte2, c1.categ, c2.categ categ2, c1.titlu, c2.titlu titlu2 , c1.titlu2 titlu_lung, c2.titlu2 titlu_lung2 
+//FROM (select * from _bbl_carte where id_traducere=" . $ids_trad[0] . ") c1 
+//left outer join (select * from _bbl_carte where id_traducere=" . $ids_trad[1] . ")  c2
+//on  c1.id_carte = c2.id_carte
+//union
+//select NULL id_traducere , c3.id_traducere id_traducere2, c3.id_carte , c3.id_carte id_carte2, NULL categ, c3.categ categ2, NULL titlu, c3.titlu titlu2 , NULL titlu_lung, c3.titlu2 titlu_lung2 
+//FROM _bbl_carte c3
+//where c3.id_traducere=" . $ids_trad[1] . " and c3.id_carte not in (select c4.id_carte from _bbl_carte c4 where c4.id_traducere=" . $ids_trad[0] . ")  
+//) x order by x.id_carte" ;
+//   //print print_r_tree($sql,true);
+//$result = db_query($sql);
+//print '<table class="views-table cols-4">
+//<thead ><tr><th class="views-field views-field-name"> </th><th class="views-field views-field-name" style="text-align: center;">1</th><th class="views-field views-field-name" style="text-align: center;">2</th><th class="views-field views-field-name"> </th></tr></thead>
+//<tbody>';
+// print '<tr class="odd views-row-first" style="text-align: center;"><td> </td><td>' . $traduceri[$ids_trad[0]] . "</td><td>" . $traduceri[$ids_trad[1]] . '</td><td> </td></tr>';
+// $i = 1;
+//foreach ($result as $record) {
+// $i++;
+// if(($i % 2) == 0 ) print '<tr class="even">';
+// else print '<tr class="odd">';
+// print "<td>" . $record->id_carte . "</td><td>";
+// if(isset( $record->titlu )) print '<strong><a href="/trimiteri/' . $ids_trad[0] . '/' . $ids_trad[1] . '/' . $record->id_carte . '/1">' . $record->titlu . '</a></strong>';
+// else print " ";
+// print "</td><td>";
+// if(isset( $record->titlu2 )) print '<strong><a href="/trimiteri/' . $ids_trad[1] . '/' . $ids_trad[0] . '/' . $record->id_carte . '/1">' . $record->titlu2 . '</a></strong>';
+// else print " ";
+// print "</td><td>";
+// if(isset( $record->titlu_lung )) print $record->titlu_lung;
+// else print  $record->titlu_lung2;
+// print "</td></tr>";
+//}
+//print "</tbody>
+//</table>"; 
+
+function biblia_transform_note($xxtrimi, $id_trad) {
+global $id_trad1, $id_trad2, $id_carte, $titluri, $versete;
+	//$titluri['trimi']
+    $output = $xxtrimi;
+    while( ($pos = strpos($xxtrimi, '<a class=T')) !== FALSE) {
+    	$pos2 = strpos($xxtrimi, '>', $pos);
+    	$pos3 = strpos($xxtrimi, '</a>', $pos2);
+    	
+    	$trimitere = substr($xxtrimi, $pos2+1, $pos3-$pos2-1);
+    	$xlink = substr($xxtrimi, $pos, $pos3-$pos+4);
+    	
+    	$pos4= strpos($trimitere, ' ');
+    	$pos5= strpos($trimitere, ', ', $pos4);
+    	
+        $pos6=strpos($xlink, '?link');
+        $pos7=strpos($xlink, '-', $pos6);
+        $pos8=strpos($xlink, '-', $pos7+1);
+        $pos9=strpos($xlink, '-', $pos8+1);
+        $pos10=strrpos($xlink, '#');
+        
+    	if($pos4 === FALSE || $pos5 === FALSE) {
+    		if($pos6 === FALSE || $pos7 === FALSE || $pos8 === FALSE || $pos9 === FALSE || $pos10 === FALSE) {
+    		    echo 'stop note';
+    		    $output = substr($xxtrimi, 0, $pos) . '<a href="#">' .  $trimitere . '</a>' . substr($xxtrimi, $pos3+4);
+    		}
+    		else {
+    			$xcarte = substr($xlink,$pos7+1, $pos8-$pos7-1);
+    			$xcapitol = substr($xlink,$pos8+1, $pos9-$pos8-1);
+    			$xverset = substr($xlink,$pos9+1, $pos10-$pos9-1);
+    			if(isset($titluri['trimi'][$xcarte]) && intval($xcapitol) > 0 && intval($xverset) > 0) {
+	    			$xurl = url('trimiteri/' . $id_trad1 . '/' . $id_trad2 . '/' . $titluri['trimi'][$xcarte] . '/' . $xcapitol, Array('fragment' => $id_trad . '.' . $xcapitol . '.' . $xverset));
+		            $text_trimi = '<a href="' . $xurl . '">' . $trimitere . '</a>';
+	    			$output = substr($xxtrimi, 0, $pos) . $text_trimi . substr($xxtrimi, $pos3+4);
+	    		}
+	    		else {
+	    			echo 'stop note';
+      		        $output = substr($xxtrimi, 0, $pos) . '<a href="#">' .  $trimitere . '</a>' . substr($xxtrimi, $pos3+4);
+	    		}
+    		}
+    	}
+    	else {
+    		$xcarte = substr($trimitere,0, $pos4);
+    		$xcapitol = substr($trimitere,$pos4+1, $pos5-$pos4-1);
+    		$xverset = substr($trimitere,$pos5+2);
+    		if(isset($titluri['trimi'][$xcarte]) && intval($xcapitol) > 0 && intval($xverset) > 0) {
+    			$xurl = url('trimiteri/' . $id_trad1 . '/' . $id_trad2 . '/' . $titluri['trimi'][$xcarte] . '/' . $xcapitol, Array('fragment' => $id_trad . '.' . $xcapitol . '.' . $xverset));
+	            $text_trimi = '<a href="' . $xurl . '">' . $trimitere . '</a>';
+    			$output = substr($xxtrimi, 0, $pos) . $text_trimi . substr($xxtrimi, $pos3+4);
+    		}
+    		else {
+    			$xcarte = substr($xlink,$pos7+1, $pos8-$pos7-1);
+    			$xcapitol = substr($xlink,$pos8+1, $pos9-$pos8-1);
+    			$xverset = substr($xlink,$pos9+1, $pos10-$pos9-1);
+    			if(isset($titluri['trimi'][$xcarte]) && intval($xcapitol) > 0 && intval($xverset) > 0) {
+	    			$xurl = url('trimiteri/' . $id_trad1 . '/' . $id_trad2 . '/' . $titluri['trimi'][$xcarte] . '/' . $xcapitol, Array('fragment' => $id_trad . '.' . $xcapitol . '.' . $xverset));
+		            $text_trimi = '<a href="' . $xurl . '">' . $trimitere . '</a>';
+	    			$output = substr($xxtrimi, 0, $pos) . $text_trimi . substr($xxtrimi, $pos3+4);
+	    		}
+	    		else {
+	    			echo 'stop note';
+	    			$output = substr($xxtrimi, 0, $pos) . '<a href="#">' .  $trimitere . '</a>' . substr($xxtrimi, $pos3+4);
+	    		}
+    		}
+    	}
+    	
+    	$xxtrimi = $output;
+    }
+    return $output;
+}
+
+function biblia_get_link_trimitere($id_trad1, $id_trad2, $id_carte, $capitol, $nr_verset, &$link_text = NULL, &$ver_text = NULL, &$ver_link = NULL) {
+global $versete, $titluri;
+
+    if(!isset($titluri[intval($id_trad1)])) {
+    	$sql = "select * from _bbl_carte where ID_traducere=$id_trad1" ;
+		$result = db_query($sql);
+		foreach ($result as $record) {
+		  $titluri[$record->ID_traducere][$record->ID_carte] = Array($record->trimitere_link, $record->trimitere_titlu);
+		}
+    }
+    if(!isset($link_text)) {
+    	$link_text = $titluri[$id_trad1][$id_carte][0] . ' ' . $capitol . ':' . $nr_verset;
+    }
+	$verset2=$id_trad1 . '_' . $id_carte . '_' . $capitol . '_' . $nr_verset;
+	if(isset($versete[$verset2])) {
+		$text_trim = $versete[$verset2];
+	}
+	else {
+		$sql = "select * from _bbl_verset$id_trad1 where ID_carte=$id_carte and capitol=$capitol and nr_verset=$nr_verset and titlu=0";
+		$result3 = db_query($sql);
+		$text_trim = '';
+		foreach ($result3 as $record3) {
+			$text_trim = $record3->text;
+		}
+		$versete[$verset2] = $text_trim;
+	}
+	$xurl = url('trimiteri/' . $id_trad1 . '/' . $id_trad2 . '/' . $id_carte . '/' . $capitol, Array('fragment' => $id_trad1 . '.' . $capitol . '.' . $nr_verset));
+    $text_trimi = '<a class="trimTooltip" href="' . $xurl . '">' . $link_text . '</a><div style="display:none"><strong>' . $titluri[$id_trad1][$id_carte][1] . ' ' . $capitol . ':' . $nr_verset . '</strong><br>' . $text_trim . '</div>; ';
+    $ver_text = '<strong>' . $titluri[$id_trad1][$id_carte][1] . ' ' . $capitol . ':' . $nr_verset . '</strong><br>' . $text_trim;
+    $ver_link = $xurl;
+    
+    return $text_trimi;
+    		      
+}
+
+function biblia_output_text($id_trad, $capitol, $nr_verset, $id_verset, $titlu, &$text, &$text_trimi, &$verset) {
+global $id_trad1, $id_trad2, $id_carte, $trimiteri_caractere, $titluri, $versete;
+	
+   if(!isset($capitol))
+      return ;
+   if(strlen(trim($text)) == 0) {
+      $sql = "select * from _bbl_verset_lung where ID_traducere=$id_trad and ID_carte=$id_carte and capitol=" . $capitol . " and nr_verset="  . $nr_verset;
+      $result2 = db_query($sql);
+      foreach ($result2 as $record2) {
+        $text= $record2->text;
+      }
+    }
+    if(isset($capitol) && $titlu==0) 
+       $verset =  '<a name="' . $id_trad . '.' . $capitol . '.' . $nr_verset . '">' . $capitol . '.' . $nr_verset . '</a>';
+    
+    if($id_trad == 5)
+         return ;
+         
+    $refs = Array();
+  	$sql = "select * from _bbl_trimiteri$id_trad where ID_carte=$id_carte and capitol=$capitol and id_verset=$id_verset and titlu=$titlu";
+    $result2 = db_query($sql);
+    foreach ($result2 as $record2) {
+      if(!isset($refs[$record2->pozitie]))  $refs[$record2->pozitie] = Array();
+      $refs[$record2->pozitie][] = Array('trim', $record2->pozitie, $record2->pos_utf8, $record2->to_carte, $record2->to_capitol, $record2->to_verset, $record2->txt_versete, $record2->trimitere, $record2->to_capitol_panala, $record2->to_panala);
+    }
+    $sql = "select * from _bbl_note$id_trad where ID_carte=$id_carte and capitol=$capitol and id_verset=$id_verset and titlu=$titlu";
+    $result2 = db_query($sql);
+    foreach ($result2 as $record2) {
+      $refs[$record2->position][] = Array('nota', $record2->position, $record2->pos_utf8, $record2->nota_index, $record2->nota_text);
+    }
+    $text_trimi = '';
+    if(count($refs) > 0) {
+    	ksort($refs);
+    	$xpos = 0;
+    	$ndxtrim = 0;
+    	$text2 = '';
+    	foreach($refs as $pos => $ref) {
+    		if($ref[0][0] == 'nota') { 
+    			$xxtrimi = str_replace('"', '', $ref[0][4]);
+    			$text2 .= substr($text, $xpos, $ref[0][1]-$xpos) . '<a class="notaTooltip" href="#"><sup>' . $ref[0][3] . '</sup></a><div style="display:none">' . biblia_transform_note($xxtrimi, $id_trad) . '</div>';
+    			$xpos = $ref[0][1];
+    		}
+    		if($ref[0][0] == 'trim') {    			
+    			if($ref[0][1] != 0) {
+    			    $text2 .= substr($text, $xpos, $ref[0][1]-$xpos) . '<a href="#"><sup>' . $trimiteri_caractere[$ndxtrim] . '</sup></a>';
+    			    $text_trimi .= $trimiteri_caractere[$ndxtrim];
+    			}
+    			$xpos = $ref[0][1];
+    			foreach ($ref as $xref) {
+    			  if($xref[0] == 'nota') { 
+	    			$xxtrimi = str_replace('"', '', $xref[4]);
+	    			$text2 .= substr($text, $xpos, $xref[1]-$xpos) . '<a class="notaTooltip" href="#"><sup>' . $xref[3] . '</sup></a><div style="display:none">' . $xxtrimi . '</div>';
+	    			$xpos = $xref[1];
+    		      }
+    		      else {
+    		      	$text_trimi .= biblia_get_link_trimitere($id_trad1, $id_trad2, $xref[3], $xref[4], $xref[5], $xref[6]);
+    		      }
+    			}
+    			$ndxtrim++;
+    		}
+    	}
+    	$text2 .= substr($text, $xpos);
+    	$text = $text2;
+    }    
+    
+  if(isset($text)) {
+    if($titlu>2) 
+        $text = "<h2>$text</h2>";
+    else if($titlu==2) 
+        $text = "<h3>$text</h3>";
+    else if($titlu==1) 
+        $text = "<h4><i>$text</h4></i>";
+  }
+}
+
+function biblia_show_trimiteri($ar) {
+global $id_trad1, $id_trad2, $id_carte, $trimiteri_caractere, $titluri, $versete;
+
+$output = '';
+$id_trad1 = intval($ar[0]);
+$id_trad2 = intval($ar[1]);
+$id_carte = intval($ar[2]);
+if(!isset($ar[3])) $ar[3]=1;
+$capitol =  intval($ar[3]);
+
+$versete = Array();
+
+$sql = "select * from _bbl_traduceri where id_traducere in ($id_trad1, $id_trad2)" ;
+$result = db_query($sql); 
+$traduceri = Array( $id_trad1=> $id_trad1, $id_trad2=> $id_trad2);
+foreach ($result as $record) {
+ $traduceri[$record->ID_traducere] = $record->traducere_scurt;
+}
+
+$sql = "select * from _bbl_carte where ID_traducere=$id_trad1 and ID_carte=$id_carte" ;
+$result = db_query($sql);
+foreach ($result as $record) {
+  $categ= $record->categ;
+  $titlu = $record->titlu;
+  $titlu2 = $record->titlu2;
+  $capitole= $record->capitole;
+}
+$titluri = Array($id_trad1=>Array(),$id_trad2=>Array(), 'trimi'=>Array());
+$sql = "select * from _bbl_carte where ID_traducere=$id_trad1 or ID_traducere=$id_trad2" ;
+$result = db_query($sql);
+foreach ($result as $record) {
+  $titluri[$record->ID_traducere][$record->ID_carte] = Array($record->trimitere_link, $record->trimitere_titlu);
+  if($record->ID_traducere == 6) {
+  	$titluri['trimi'][$record->trimitere] = $record->ID_carte;
+  }
+}
+$sql = "select * from ( 
+SELECT c1.capitol, c2.capitol capitol2, c1.id_verset, c2.id_verset id_verset2, c1.nr_verset, c2.nr_verset nr_verset2, c1.titlu, c2.titlu titlu2, c1.text, c2.text text2  
+FROM (select * from _bbl_verset$id_trad1 where id_carte=$id_carte and capitol=$capitol) c1 
+left outer join (select * from _bbl_verset$id_trad2 where id_carte=$id_carte) c2 
+on c1.id_verset= c2.id_verset
+union 
+select NULL capitol, c3.capitol capitol2, c3.id_verset, c3.id_verset id_verset2, NULL nr_verset, c3.nr_verset nr_verset2, NULL titlu, c3.titlu titlu2, NULL text, c3.text text2
+FROM _bbl_verset$id_trad2 c3 where c3.id_carte=$id_carte and c3.capitol=$capitol and c3.id_verset not in (select c4.id_verset from _bbl_verset$id_trad1 c4 where id_carte=$id_carte and capitol=$capitol) 
+) x order by x.id_verset" ;
+
+$result = db_query($sql);
+$output .=  "<h1> $titlu - $titlu2 </h1> ";
+for($i=1; $i<=$capitole; $i++) {
+  if($i==$capitol) 
+     $output .=  '<i>' . $i . '</i> ';
+  else 
+     $output .=  '<a href="' . url('trimiteri/' . $id_trad1 . '/' . $id_trad2 . '/' . $id_carte . '/' . $i) . '">' . $i . '</a> ';
+}  
+$output .=   '<table class="views-table cols-4"><thead ><tr><th class="views-field views-field-name"> </th><th class="views-field views-field-name" style="text-align: center;"><h1>Capitolul ' . $capitol . '</h1></th><th class="views-field views-field-name" style="text-align: center;">  </th><th class="views-field views-field-name">  </th></tr></thead><tbody>';
+$output .=  '<tr class="odd views-row-first" style="text-align: center;"><td> </td><td>' . $traduceri[$id_trad1] . '</td><td> </td><td>' . $traduceri[$id_trad2] . '</td></tr>';
+
+$sql = "select * from _bbl_trimiteri_caractere ";
+$result2 = db_query($sql);
+$trimiteri_caractere = Array();
+foreach ($result2 as $record2) {
+    $trimiteri_caractere[] = $record2->txt;
+}
+
+foreach ($result as $record) {
+  $text = $record->text;
+  $text_trimi ='';
+  $verset = '';
+  biblia_output_text($id_trad1, $record->capitol, $record->nr_verset, $record->id_verset, $record->titlu, $text, $text_trimi, $verset);
+  
+  $text2 = $record->text2;
+  $text_trimi2 ='';
+  $verset2 = '';
+  biblia_output_text($id_trad2, $record->capitol2, $record->nr_verset2, $record->id_verset2, $record->titlu2, $text2, $text_trimi2, $verset2);
+  
+  $output .= '<tr class="odd"><td>' . $verset . '</td><td>' . $text . '</td><td>' . $verset2 . '</td><td>' . $text2 . '</td></tr>';
+  if(strlen($text_trimi) > 0 || strlen($text_trimi2) > 0 )
+     $output .= '<tr class="even"><td> </td><td style="text-align:right;font-size:0.8em;">' . $text_trimi . '</td><td> </td><td style="text-align:right;font-size:0.8em;">' . $text_trimi2 . '</td></tr>';
+
+}
+$output .= "</tbody></table>"; 
+
+  return $output;
+}
+
+function biblia_extract_trimitere($line2, &$to_carte, &$trimitere, &$to_capitol, &$to_verset, &$to_capitol_panala, &$to_panala) {
+	global $user, $carti, $pages, $trimiteri;
+
+	$l = trim($line2);
+	$line2 = trim($l);
+	$start = strpos($line2, ' ');
+	$start1 = strpos($line2, ' ');
+	$start2 = strpos($line2, '.');
+	if($start2 < $start1 && $start2 > 0) {
+		$start = $start2;
+	}
+	$trimi = substr($line2,0,$start);
+	$trimitere = $trimi;
+	$to_carte = $trimiteri[$trimi];
+	$temp = substr($line2,$start1+1);
+	if(($start = strpos($temp, ':')) !== FALSE) {
+		$to_capitol = intval(substr($temp,0,$start));
+		$to_capitol_panala = intval(substr($temp,0,$start));
+		$versete = substr($temp,$start+1);
+		if(($start1 = strpos($versete, '-')) !== FALSE) {
+			$verse = explode("-", $versete);
+			$to_verset = intval(trim($verse[0]));
+			$to_panala = intval(trim($verse[count($verse) - 1]));
+		}
+		if(($start1 = strpos($versete, ',')) !== FALSE) {
+			$verse = explode(",", $versete);
+			$to_verset = intval(trim($verse[0]));
+			$to_panala = intval(trim($verse[count($verse) - 1]));
+		}
+		else {
+			$to_verset = $to_panala = intval(trim($versete));
+		}
+	}
+	else {
+		$to_capitol = intval($temp);
+		if(($start1 = strpos($temp, '-')) !== FALSE) {
+			$to_capitol_panala = intval(substr($temp, $start1+1));
+		}
+		else {
+			$to_capitol_panala = intval($temp);
+		}
+		
+		$to_verset = 1;
+		$to_panala = 0;
+	}
+}
+
+function biblia_scrie_verset($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, $titlu, $text, $txt_trimiteri) {
+	global $user, $carti, $pages, $trimiteri;
+
+	$xtrimi=Array();
+	$note=Array();
+	$cuvinteIisus=Array();
+	
+	$original = $text ;
+	if( ($pos = strrpos($text, '<br>')) !== FALSE) {
+		$text2 = substr($text, 0, $pos) . substr($text, $pos+4);  
+		$text = str_replace("<br>", "\r\n", $text2);
+	}
+
+	$text_ascii = str_replace("^", "", iconv('UTF-8', 'ASCII//TRANSLIT', $text));
+	
+	$start = 0;
+	while($start !== FALSE)
+	{
+	  $start1 = strpos($text,"<span class='star'>");    //<span class='star'>**</span>
+	  $start2 = strpos($text,"<span class='index'>");   //<span class='index'>a</span>
+	  $start3 = strpos($text,"<span class='Jesus'>");   //<span class='Jesus'> ...
+	  $start4 = strpos($text,"</span>");                // ... </span>   // Jesus
+	  $start = strlen($text);
+	  if($start1 !== FALSE && $start1 < $start) $start = $start1;
+	  if($start2 !== FALSE && $start2 < $start) $start = $start2;
+	  if($start3 !== FALSE && $start3 < $start) $start = $start3;
+	  if($start4 !== FALSE && $start4 < $start) $start = $start4;
+	  if($start == strlen($text)) {
+	  	$start = FALSE;
+	  }
+	  else {
+	  	if($start === $start1) {
+	  		$start_utf8 = strpos($text_ascii,"<span class='star'>");
+	  		$stop = strpos($text,"</span>", $start);
+	  	    $stop2 = strpos($text_ascii,"</span>", $start_utf8);
+	  	    $xtrimi[] = Array('pos'=>$start, 'pos_utf8'=>$start_utf8,'star'=>substr($text,$start+19,$stop-$start-19), 'trimiteri' => Array());
+	  	    $text2 = substr($text, 0, $start) . substr($text, $stop+7);  
+		    $text = $text2;
+		    $text2 = substr($text_ascii, 0, $start_utf8) . substr($text_ascii, $stop2+7);  
+		    $text_ascii = $text2;
+	  	}
+	    if($start === $start2) {
+	  		$start_utf8 = strpos($text_ascii,"<span class='index'>");
+	  		$stop = strpos($text,"</span>", $start);
+	  	    $stop2 = strpos($text_ascii,"</span>", $start_utf8);
+	  	    $note[] = Array('pos'=>$start, 'pos_utf8'=>$start_utf8, 'star'=>substr($text,$start+20,$stop-$start-20));
+	  	    $text2 = substr($text, 0, $start) . substr($text, $stop+7);  
+		    $text = $text2;
+		    $text2 = substr($text_ascii, 0, $start_utf8) . substr($text_ascii, $stop2+7);  
+		    $text_ascii = $text2;
+		    
+		    if(!isset($list_note)) {
+				$start5 = strpos($text,"<div class='ftn'>");
+				$stop5 = strpos($text,"</div>",$start5);
+				$snote = substr($text,$start5+17,$stop5-$start5-17);
+				$star = substr($text, $start5, $stop5-$start5+6);
+				$text2 = str_replace($star, '', $text);
+				$text = $text2;
+				$list_note = explode('<br />', $snote);
+		    }
+	  	}
+	  	if($start === $start3) {
+	  		$start_utf8 = strpos($text_ascii,"<span class='Jesus'>");
+	  		$cuvinteIisus[] = Array('pos'=>$start, 'pos_utf8'=>$start_utf8, 'pos2'=>0, 'pos2_utf8'=>0);
+	  		$text2 = substr($text, 0, $start) . substr($text, $start+20);  
+		    $text = $text2;
+		    $text2 = substr($text_ascii, 0, $start_utf8) . substr($text_ascii, $start_utf8+20);
+		    $text_ascii = $text2;
+	  	}
+	    if($start === $start4) {
+	  		$start_utf8 = strpos($text_ascii,"</span>");
+	  		if(count($cuvinteIisus) > 0) {
+	  		  if($cuvinteIisus[count($cuvinteIisus)-1]['pos2'] == 0) {
+		  		$cuvinteIisus[count($cuvinteIisus)-1]['pos2'] = $start;
+		  		$cuvinteIisus[count($cuvinteIisus)-1]['pos2_utf8'] = $start_utf8;
+	  		  }
+	  		}
+	  		$text2 = substr($text, 0, $start) . substr($text, $start+7);  
+		    $text = $text2;
+		    $text2 = substr($text_ascii, 0, $start_utf8) . substr($text_ascii, $start_utf8+7);
+		    $text_ascii = $text2;
+	  	}
+	  }
+	}
+
+	if(count($note) > 0) {
+		foreach($list_note as $id_nota => $no) {
+			$nota = $note[$id_nota];
+			$nota['text'] = substr($no,strlen("<span class='index'><span class='index'>a</span></span>"));
+			//$sql = "insert into bbl_note values($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, $id_nota, " . $nota['pos'] . ", " . $nota['pos_utf8'] . ", '" . $nota['star'] . "', '" . $nota['text'] . "')" ;
+			$sql = "update _bbl_note set position=" . $nota['pos'] . ", pos_utf8=" . $nota['pos_utf8'] . ", nota_index='" . $nota['star'] . "', nota_text='" . $nota['text'] . "'  
+			        where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol and nr_verset=$nr_verset and titlu=0 and id_nota=$id_nota " ;
+			db_query($sql);
+		}
+	}
+	if(count($cuvinteIisus) > 0) {
+	  foreach($cuvinteIisus as $id_cv => $cv) {
+		//$sql = "insert into bbl_cuvinte_iisus 
+		//values($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, $id_cv, " . $cv['pos'] . ", " . $cv['pos2'] . ", " . $cv['pos_utf8'] . ", " . $cv['pos2_utf8'] . ")" ;
+		$sql = "update _bbl_cuvinte_iisus set  pos_dela=" . $cv['pos'] . ", pos_panala=" . $cv['pos2'] . ", pos_utf8_dela=" . $cv['pos_utf8'] . ", pos_utf8_panala=" . $cv['pos2_utf8'] . " 
+		        where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol and nr_verset=$nr_verset and cuvinte_index=$id_cv " ;
+		db_query($sql);
+	  }
+	}
+
+	$original2 = str_replace("'", '"', $original);
+	$txt_trimiteri2 = str_replace("'", '"', $txt_trimiteri);
+//	$sql = "insert into bbl_verset (ID_traducere, ID_carte, capitol, ID_verset, nr_verset,  titlu, text)
+//	        values($idtrad, $ID_carte, $capitol, $id_verset, " . $nr_verset . ", $titlu, '$text')" ;
+	$sql = "update _bbl_verset set text='$text', original='$original2', trimiteri='$txt_trimiteri2' 
+	        where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol and nr_verset=$nr_verset and titlu=$titlu " ;
+	db_query($sql);
+
+	$id_trimitere = 0;
+	$ndx_trimitere = 0;
+	if(count($xtrimi) > 0) {
+	    $sql = "delete from _bbl_trimiteri where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol and nr_verset=$nr_verset and titlu=$titlu " ;
+	    db_query($sql);
+		$xtrim = explode("<span class='star'><span class='star'>", $txt_trimiteri);
+		foreach ($xtrim as $line) {
+			if(($stop = strpos($line, '</span></span>')) !== FALSE) {
+				$line2 = substr($line, $stop+14);
+				$xtrim2 = explode(";", $line2);
+				foreach ($xtrim2 as $line2) {
+					if(trim($line2) == '') {
+						continue;
+					}
+					$to_carte = $ID_carte;
+					$trimitere = $carti[$ID_carte]['trim'];
+					$to_capitol = $capitol;
+					$to_verset = $nr_verset;
+					$to_capitol_panala = $capitol;
+					$to_panala = $nr_verset;
+					if(($start1 = strpos($line2, ' - ')) !== FALSE) {
+						$nlength = strlen($line2);
+						biblia_extract_trimitere(substr($line2,0,$start1), $to_carte, $trimitere, $to_capitol, $to_verset, $to_capitol_panala, $to_panala);
+						biblia_extract_trimitere(substr($line2,$start1+3,$nlength-$start1-3), $to_carte, $trimitere, $to_capitol_panala, $to_panala, $to_capitol_panala, $to_panala);
+					}
+					else {
+						biblia_extract_trimitere($line2, $to_carte, $trimitere, $to_capitol, $to_verset, $to_capitol_panala, $to_panala);
+					}
+					if(!isset($trimiteri[$trimitere]) ||
+							$to_carte == 0 ||
+							$to_capitol == 0 ||
+							$to_verset == 0 ||
+							$to_capitol_panala == 0) {
+						echo "Eroare trimitere verset " . ($nr_verset) . " $capitol $ID_carte <br>";
+					}
+
+					$ndx_trimitere++;
+					$sql = "insert into _bbl_trimiteri (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, titlu, pozitie, ndx_trimitere, pos_utf8, to_carte, trimitere, to_capitol, to_verset, 	txt_versete, to_capitol_panala, to_panala)
+					  values($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, $titlu, " . $xtrimi[$id_trimitere]['pos'] . ", $ndx_trimitere, " . $xtrimi[$id_trimitere]['pos_utf8'] . ", $to_carte, '$trimitere', $to_capitol, $to_verset, '$line2', $to_capitol_panala, $to_panala)" ;
+					db_query($sql);
+				    
+				}
+				$id_trimitere++;
+			}
+		}
+	}
+
+
+}
+
+function biblia_process_versete() {
+global $user, $carti, $pages, $trimiteri;
+	$idtrad = 6;
+	$sCaractere = Array();
+	$sql = "select * from _bbl_caractere where ID_traducere = $idtrad " ;
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		$sCaractere[] = Array('txt_search' => $record->txt_search, 'txt_replace' => $record->txt_replace);
+	}
+	$sql = "select * from _bbl_traduceri where ID_traducere = $idtrad " ;
+	$result = db_query($sql);
+		foreach ($result as $record) {
+		$idtrad = $record->ID_traducere;
+		if($idtrad == 6) {
+			@mkdir($idtrad,'0777');
+			
+//			$site = 'http://www.dervent.ro/s/b/index-C.php?id=VT';
+//			$filename = $idtrad . "/vechiul.html";
+//			if(!file_exists($filename) ) {
+//				// create curl resource
+//				$ch = curl_init();
+//			
+//				// set url
+//				curl_setopt($ch, CURLOPT_URL, $site);
+//			
+//				//return the transfer as a string
+//				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//			
+//				//curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+//			
+//				//pretend you came from their site already
+//				curl_setopt($ch, CURLOPT_REFERER, 'http://www.dervent.ro');
+//			
+//				//pretend you are firefox 3.06 running on windows Vista
+//				curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+//			
+//				// $output contains the output string
+//				$output = curl_exec($ch);
+//			
+//				// close curl resource to free up system resources
+//				curl_close($ch);
+//				
+//				file_put_contents($filename, $output);
+//			}
+//			$output = file_get_contents($filename);
+//			
+//			$out = $output; //str_replace("<br>", "", $output);
+//			foreach($sCaractere as $sCaracter) {
+//				$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+//				$out = $output;
+//			}
+//			$output = str_replace("'", "''", $out);
+//			
+//			$carti=explode("<font color='#888888'><small>", $output);
+//			foreach($carti as $id_carte => $text) {
+//				if($id_carte == 0) continue;
+//				$pos = strpos($text, "</small>");
+//				$start = strpos($text, '<a href="', $pos);
+//				$stop = strpos($text, '"', $start+strlen('<a href="'));
+//				
+//				$trimi = substr($text, 0, $pos);
+//				$page = 'http://www.dervent.ro/s/b/index-C.php' . substr($text, $start+strlen('<a href="'), $stop-$start-strlen('<a href="'));
+//				
+//				$start = strpos($text, '>', $stop);
+//				$stop = strpos($text, '</a>', $start);
+//				
+//				$carte = substr($text, $start+1, $stop-$start-1);
+//												
+//				$sql = "update _bbl_carte set trimitere='$trimi', titlu='$carte', page='$page' where ID_traducere = $idtrad and nr_order=$id_carte " ;
+//				db_query($sql);
+//			}
+//			
+//			$site = 'http://www.dervent.ro/s/b/index-C.php?id=NT';
+//			$filename = $idtrad . "/noul.html";
+//			if(!file_exists($filename) ) {
+//				// create curl resource
+//				$ch = curl_init();
+//			
+//				// set url
+//				curl_setopt($ch, CURLOPT_URL, $site);
+//			
+//				//return the transfer as a string
+//				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//			
+//				//curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+//			
+//				//pretend you came from their site already
+//				curl_setopt($ch, CURLOPT_REFERER, 'http://www.dervent.ro');
+//			
+//				//pretend you are firefox 3.06 running on windows Vista
+//				curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+//			
+//				// $output contains the output string
+//				$output = curl_exec($ch);
+//			
+//				// close curl resource to free up system resources
+//				curl_close($ch);
+//				
+//				file_put_contents($filename, $output);
+//			}
+//			$output = file_get_contents($filename);
+//			
+//			$out = $output; //str_replace("<br>", "", $output);
+//			foreach($sCaractere as $sCaracter) {
+//				$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+//				$out = $output;
+//			}
+//			$output = str_replace("'", "''", $out);
+//			
+//			$carti=explode("<font color='#888888'><small>", $output);
+//			foreach($carti as $id_carte => $text) {
+//				if($id_carte == 0) continue;
+//				$pos = strpos($text, "</small>");
+//				$start = strpos($text, '<a href="', $pos);
+//				$stop = strpos($text, '"', $start+strlen('<a href="'));
+//				
+//				$trimi = substr($text, 0, $pos);
+//				$page = 'http://www.dervent.ro/s/b/index-C.php' . substr($text, $start+strlen('<a href="'), $stop-$start-strlen('<a href="'));
+//				
+//				$start = strpos($text, '>', $stop);
+//				$stop = strpos($text, '</a>', $start);
+//				
+//				$carte = substr($text, $start+1, $stop-$start-1);
+//				
+//				$sql = "update _bbl_carte set trimitere='$trimi', titlu='$carte', page='$page' where ID_traducere = $idtrad and nr_order=" . ($id_carte + 53) ;
+//				db_query($sql);
+//			}
+			
+			$sql = "select * from _bbl_carte where ID_traducere = $idtrad " ;
+	        $result2 = db_query($sql);
+		    foreach ($result2 as $record2) {
+		    	$ID_carte = $record2->ID_carte;
+				$capitole = $record2->capitole;
+				$crt99 = sprintf('%02d', $ID_carte);
+//				$site = $record2->page;
+//				$filename = $idtrad . "/" . $crt99 . "_000.html";
+//			    if(!file_exists($filename) ) {
+//					// create curl resource
+//					$ch = curl_init();
+//				
+//					// set url
+//					curl_setopt($ch, CURLOPT_URL, $site);
+//				
+//					//return the transfer as a string
+//					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//				
+//					//curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+//				
+//					//pretend you came from their site already
+//					curl_setopt($ch, CURLOPT_REFERER, 'http://www.dervent.ro');
+//				
+//					//pretend you are firefox 3.06 running on windows Vista
+//					curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+//				
+//					// $output contains the output string
+//					$output = curl_exec($ch);
+//				
+//					// close curl resource to free up system resources
+//					curl_close($ch);
+//					
+//					file_put_contents($filename, $output);
+//				}
+//				$output = file_get_contents($filename);
+//				
+//				$out = $output; //str_replace("<br>", "", $output);
+//				foreach($sCaractere as $sCaracter) {
+//					$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+//					$out = $output;
+//				}
+//				$output = str_replace("'", "''", $out);
+//				
+//			    $cap=explode('<a href="?id=', $output);
+//			    $sql = "delete from _bbl_verset$idtrad where id_traducere=$idtrad and id_carte=$ID_carte and titlu=2 " ;
+//				db_query($sql);
+//			    $sql = "delete from _bbl_note where id_traducere=$idtrad and id_carte=$ID_carte and titlu=2 " ;
+//				db_query($sql);
+//				$capitol = 1;
+//				foreach($cap as $ndx => $text) {
+//					if($ndx == 0 || $ndx == 1) continue;
+//				    if(($start = strpos($text, '<table')) !== FALSE) {
+//						continue;
+//					}
+//					if(($start = strpos($text, '</table>')) !== FALSE) {
+//						$text2 = substr($text, 0, $start);
+//						$text = $text2;
+//					}
+//					$capitol++;
+//					$start = strpos($text, '>');
+//					$stop = strrpos($text, '</a>');
+//					
+//					$titlu = substr($text, $start+1, $stop-$start-1);  //titlu capitol
+//					$xtitlu = explode("<br />", $titlu);
+//					if(count($xtitlu) == 2 && 
+//					 (strpos($xtitlu[0],"CAPITOL") !== FALSE || 
+//					  strpos($xtitlu[0],"PSALM") !== FALSE)) {
+//						$titlu = $xtitlu[1];
+//					}
+//					if(count($xtitlu) == 3 && 
+//					 (strpos($xtitlu[0],"CAPITOL") !== FALSE  || 
+//					  strpos($xtitlu[0],"PSALM") !== FALSE)) {
+//						$titlu = $xtitlu[1] . "\r\n" . $xtitlu[2];
+//					}
+//					if(strpos($titlu,"CAPITOL") !== FALSE) continue;
+//					if(strpos($titlu,"PROLOG") !== FALSE) $capitol--;
+//					
+//					$text_ascii = str_replace("^", "", iconv('UTF-8', 'ASCII//TRANSLIT', $titlu));
+//						$id_nota = 0;
+//						while(($start = strpos($titlu, '<sup>')) !== FALSE) { 
+//							$id_nota++;
+//							$stop =  strpos($titlu, '</sup>', $start);
+//							$start2 = strpos($text_ascii, '<sup>');
+//							$stop2 =  strpos($text_ascii, '</sup>', $start2);
+//							$nota = substr($titlu, $start+5, $stop-$start-5);
+//							$text2 = substr($titlu, 0, $start) . substr($titlu, $stop+6);
+//							$titlu = $text2;
+//							$text2 = substr($text_ascii, 0, $start2) . substr($text_ascii, $stop2+6);
+//							$text_ascii = $text2;
+//							
+//							$start3 = strpos($nota, 'href="');
+//							$stop3 = strpos($nota, '">', $start3);
+//							$text_nota = substr($nota, $start3+6, $stop3-$start3-6);
+//							$start3 = strpos($nota, 'red>');
+//							$stop3 = strpos($nota, '<', $start3);
+//							$nota_index = substr($nota, $start3+4, $stop3-$start3-4);
+//							
+//							$sql = "insert into _bbl_note 
+//							  values($idtrad, $ID_carte, " . ($capitol-1) . ", " . (($capitol-1)*1000 +1) . ", 1, 2, $id_nota, $start, $start2, '$nota_index', '$text_nota')";
+//							db_query($sql);
+//						}
+//					
+//					$sql = "insert into _bbl_verset$idtrad values($idtrad, $ID_carte, " . ($capitol-1) . "," . (($capitol-1)*1000 +1) . ",1,2,'$titlu','1')" ;
+//					db_query($sql);
+//				}
+//				for($capitol = 1; $capitol <= $capitole; $capitol++) { 
+//					$cap99 = sprintf('%02d', $capitol);
+//					$cap999 = sprintf('%03d', $capitol);
+//					$site = $record2->page . "-" . $cap99;
+//			        $filename = $idtrad . "/" . $crt99 . "_" . $cap99 . ".html";
+//			        if($ID_carte == 19) {
+//			        	$site = $record2->page . "-" . $cap999;
+//			            $filename = $idtrad . "/" . $crt99 . "_" . $cap999 . ".html";
+//			        }
+//					if(!file_exists($filename) ) {
+//						// create curl resource
+//						$ch = curl_init();
+//					
+//						// set url
+//						curl_setopt($ch, CURLOPT_URL, $site);
+//					
+//						//return the transfer as a string
+//						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+//					
+//						//curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+//					
+//						//pretend you came from their site already
+//						curl_setopt($ch, CURLOPT_REFERER, 'http://www.dervent.ro');
+//					
+//						//pretend you are firefox 3.06 running on windows Vista
+//						curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+//					
+//						// $output contains the output string
+//						$output = curl_exec($ch);
+//					
+//						// close curl resource to free up system resources
+//						curl_close($ch);
+//						
+//						file_put_contents($filename, $output);
+//					}				
+//				}
+				$page = $record2->page;
+				$trim = $record2->trimitere;
+				$trimiteri[$trim] = $ID_carte;
+				$carti[$ID_carte] = Array('page'=>$page, 'trim'=>$trim, 'capitole'=>$capitole);
+		    }
+		    $trimiteri['1Cor'] = 46;
+		    $trimiteri['2Cor'] = 47;
+		    $trimiteri['Sirl'] = 74;//Cartea Intelepciunii lui Isus, Fiul lui Sirah (Ecclesiasticul)
+		    foreach ($carti as $ID_carte => $carte) {
+				$capitole = $carte['capitole'];
+				$page = $carte['page'];
+				$crt99 = sprintf('%02d', $ID_carte);
+				$capStart = 1;
+				if($ID_carte == 74) $capStart = 0;
+		    	for($capitol = $capStart; $capitol <= $capitole; $capitol++) { 
+		    		if($ID_carte < 66  || $ID_carte > 66 || 
+		    		   ($ID_carte == 66 && $capitol < 99 )) {
+		    		   	continue;
+		    		}
+		    		
+					$cap99 = sprintf('%02d', $capitol);
+					$cap999 = sprintf('%03d', $capitol);
+			        $filename = $idtrad . "/" . $crt99 . "_" . $cap99 . ".html";
+			        if($ID_carte == 19) {
+			            $filename = $idtrad . "/" . $crt99 . "_" . $cap999 . ".html";
+			        }
+					$output = file_get_contents($filename);
+					$sql = "delete from _bbl_verset$idtrad where id_traducere=$idtrad and id_carte=$ID_carte and capitol=$capitol and titlu=0 " ;
+					db_query($sql);
+					$sql = "delete from _bbl_note$idtrad where id_traducere=$idtrad and id_carte=$ID_carte and capitol=$capitol  " ;
+					db_query($sql);
+					$sql = "delete from _bbl_trimiteri$idtrad where id_traducere=$idtrad and id_carte=$ID_carte and capitol=$capitol  " ;
+					db_query($sql);
+					$sql = "delete from _bbl_verset_lung where id_traducere=$idtrad and id_carte=$ID_carte and capitol=$capitol  " ;
+					db_query($sql);
+					
+					$out = $output; 
+					foreach($sCaractere as $sCaracter) {
+						$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+						$out = $output;
+					}
+					$output = str_replace("<br />", "\r\n", $out);
+					
+					$texte=explode("<small>", $output);
+					$id_verset=1;
+					$nr_verset = 0;
+					foreach($texte as $ndx_verset => $text) {
+						if($ndx_verset==0) continue;
+						$nr_verset ++;
+						$stop = strpos($text, "</small>");
+						$orig_nr_verset = substr($text, 0, $stop);
+						if($nr_verset != intval($orig_nr_verset)) {
+							echo "stop 1";
+							$nr_verset = intval($orig_nr_verset);
+						}
+						$stop = strpos($text, "td bgcolor=");
+						$start = strpos($text, ">", $stop);
+						$stop = strpos($text, "</td>", $start);
+						$text2 = substr($text,$start+1, $stop-$start-1);
+						$text = $text2;
+						
+					    if($ID_carte==67 && $capitol==2 && $nr_verset==14) {
+									echo "stop trimi";
+						}
+						while(($start = strpos($text, '<div style')) !== FALSE) {
+							$stop = strpos($text, ">", $start);
+							$start2 = strpos($text, "</div>", $stop);
+							$text2 = substr($text, 0, $start) . substr($text,$stop+1, $start2-$stop-1) . substr($text, $start2+6);
+							$text = $text2;
+						}
+						if(($start = strpos($text, "<div id")) !== FALSE) {
+							$stop = strpos($text, "</div>");
+							if($stop === FALSE)
+							    $strim = substr($text, $start);
+							else
+							    $strim = substr($text, $start, $stop-$start);
+							$text2 = substr($text, 0, $start);
+							$text = $text2;
+						}
+						else {
+							$strim = '';
+						}
+						
+						$id_verset2 = 0;
+						$sql = "select id_verset from _bbl_verset where ID_traducere=2 and id_carte=$ID_carte and capitol=$capitol and nr_verset=$nr_verset and titlu=0" ;
+				        $result3 = db_query($sql);
+					    foreach ($result3 as $record3) {
+					        $id_verset2 = $record3->id_verset;
+					    }
+					    if($id_verset2 > $id_verset ) $id_verset=$id_verset2;
+					    else $id_verset++;
+						
+						$text_ascii = str_replace("^", "", iconv('UTF-8', 'ASCII//TRANSLIT', $text));
+						$id_nota = 0;
+						while(($start = strpos($text, '<sup>')) !== FALSE) { 
+							$id_nota++;
+							$stop =  strpos($text, '</sup>', $start);
+							$start2 = strpos($text_ascii, '<sup>');
+							$stop2 =  strpos($text_ascii, '</sup>', $start2);
+							$nota = substr($text, $start+5, $stop-$start-5);
+							$text2 = substr($text, 0, $start) . substr($text, $stop+6);
+							$text = $text2;
+							$text2 = substr($text_ascii, 0, $start2) . substr($text_ascii, $stop2+6);
+							$text_ascii = $text2;
+							
+							$start3 = strpos($nota, 'href="');
+							$stop3 = strpos($nota, '">', $start3);
+							$text_nota = substr($nota, $start3+6, $stop3-$start3-6);
+							$start3 = strpos($nota, 'red>');
+							if($start3 === FALSE) {
+								$start3 = strpos($nota, 'ed">');
+							}
+							$stop3 = strpos($nota, '<', $start3);
+							$nota_index = substr($nota, $start3+4, $stop3-$start3-4);
+							
+							$sql = "insert into _bbl_note$idtrad 
+							  values($idtrad, $ID_carte, $capitol, " . ($capitol*1000 + $id_verset) . ", $nr_verset, 0, $id_nota, $start, $start2, '$nota_index', '$text_nota')";
+							db_query($sql);
+						}
+						$text2 = str_replace("'", "''", $text);
+						$text = $text2;
+						$text2 = str_replace("\''", "''", $text);
+					    if(strlen($text2) > 400) {
+							$sql = "insert into _bbl_verset_lung 
+							    values($idtrad, $ID_carte, $capitol, " . ($capitol*1000 + $id_verset) . ", $nr_verset, 0, '$text2')" ;
+							$text2 = '';
+							db_query($sql);
+						}
+						$sql = "insert into _bbl_verset$idtrad 
+							  values($idtrad, $ID_carte, $capitol, " . ($capitol*1000 + $id_verset) . ", $nr_verset, 0, '$text2', '$orig_nr_verset')";
+						db_query($sql);
+						
+						if(strlen($strim)>0) {
+							$trimi = explode("<a", $strim);
+							foreach($trimi as $ndx_trimitere => $trim) {
+								if($ndx_trimitere == 0) continue;
+								
+								$start = strpos($trim, '">');
+								$stop = strpos($trim, "<", $start);
+								$txt_versete = substr($trim, $start+2, $stop-$start-2);
+								if(trim($txt_versete) == ':') {
+									continue;
+								}
+								if($ID_carte == 5 && $capitol==32 && $txt_versete == '1 43:') $txt_versete = 'Epist 1:43';
+								if($ID_carte == 5 && $capitol==32 && $txt_versete == '1 5_6:') $txt_versete = 'Naum 1:5-6';
+								if($ID_carte == 5 && $capitol==32 && $txt_versete == '1 2:') $txt_versete = 'Naum 1:2';
+								if($ID_carte == 5 && $capitol==33 && $txt_versete == '1 14:') $txt_versete = 'Iuda 1:14';
+								if($ID_carte == 5 && $capitol==33 && $txt_versete == '2 13:') $txt_versete = '2Tes 2:13';
+								if($ID_carte == 6 && $capitol==10 && $txt_versete == '1 18:') $txt_versete = '2Rg 1:18';
+								if($ID_carte == 6 && $capitol==15 && $txt_versete == 'Jd :3') $txt_versete = 'Jd 3:9';
+								if($ID_carte == 6 && $capitol==17 && $txt_versete == 'Nm :27') $txt_versete = 'Nm 27:1';								
+								if($ID_carte == 13 && $capitol==2 && $txt_versete == 'Fc 29_30:') $txt_versete = 'Fc 29:30';								
+								if($ID_carte == 14 && $capitol==16 && $txt_versete == '3 Mac:1') $txt_versete = '3Mac 1:1';								
+								if($ID_carte == 16 && $capitol==12 && $txt_versete == 'Ne:12') $txt_versete = '';
+								if($ID_carte == 16 && $capitol==12 && $txt_versete == ' Ne:12') $txt_versete = '';								
+								if($ID_carte == 17 && $capitol==1 && $txt_versete == '1 16:') $txt_versete = '';								
+								if($ID_carte == 17 && $capitol==3 && $txt_versete == '6 14:') $txt_versete = 'Dn 6:14';								
+								if($ID_carte == 17 && $capitol==4 && $txt_versete == '3 15:') $txt_versete = 'Est 3:15';								
+								if($ID_carte == 18 && $capitol==4 && $txt_versete == 'Iuda 6:') $txt_versete = '';								
+								if($ID_carte == 18 && $capitol==22 && $txt_versete == '1 12:') $txt_versete = 'Sof 1:12';								
+								if($ID_carte == 19 && $capitol==7 && $txt_versete == '16 :') $txt_versete = 'Ef 6:16';								
+								if($ID_carte == 19 && $capitol==9 && $txt_versete == 'Ps Lc:18') $txt_versete = '';								
+								if($ID_carte == 19 && $capitol==9 && $txt_versete == '15 :') $txt_versete = 'FA 23:15';								
+								if($ID_carte == 19 && $capitol==30 && $txt_versete == 'Ps 108:22; 39') $txt_versete = 'Ps 108:22';								
+								if($ID_carte == 19 && $capitol==47 && $txt_versete == '14 :') $txt_versete = 'Mal 1:14';								
+								if($ID_carte == 19 && $capitol==74 && $txt_versete == 'Dn 2:21; 5') $txt_versete = 'Dn 2:21';								
+								if($ID_carte == 19 && $capitol==74 && $txt_versete == 'Ap 15:7`NT') $txt_versete = 'Ap 15:7';								
+								if($ID_carte == 19 && $capitol==77 && $txt_versete == 'Ies 13:21; 40') $txt_versete = 'Ies 13:21';								
+								if($ID_carte == 19 && $capitol==91 && $txt_versete == 'Ps 90:8;') $txt_versete = 'Ps 90:8';								
+								if($ID_carte == 19 && $capitol==106 && $txt_versete == '4 :') $txt_versete = 'Iona 1:4';								
+								if($ID_carte == 19 && $capitol==106 && $txt_versete == '26 :') $txt_versete = 'Iz 7:26';								
+								if($ID_carte == 19 && $capitol==111 && $txt_versete == '16 :') $txt_versete = 'Est 8:16';								
+								if($ID_carte == 19 && $capitol==118 && $txt_versete == '19 :') $txt_versete = '2Ptr 1:19';								
+								if($ID_carte == 19 && $capitol==142 && $txt_versete == '23 :') $txt_versete = 'Ezr 8:23';								
+								if($ID_carte == 23 && $capitol==27 && $txt_versete == 'Is 22,2:') $txt_versete = 'Is 22:2';								
+								if($ID_carte == 23 && $capitol==30 && $txt_versete == 'Is 1,4:') $txt_versete = 'Is 1:4';								
+								if($ID_carte == 23 && $capitol==31 && $txt_versete == 'Plg 3,37:') $txt_versete = 'Plg 3:37';								
+								if($ID_carte == 23 && $capitol==33 && $txt_versete == 'Avd 10:') $txt_versete = '';								
+								if($ID_carte == 73 && $capitol==11 && $txt_versete == '2 24:') $txt_versete = '4Rg 2:24';								
+								if($ID_carte == 73 && $capitol==16 && $txt_versete == '2 6:') $txt_versete = '1Rg 2:6';								
+								if($ID_carte == 73 && $capitol==16 && $txt_versete == '13 2:') $txt_versete = 'Tob 13:2';								
+								if($ID_carte == 74 && $capitol==35 && $txt_versete == '1 6:') $txt_versete = '2Tes 1:6';								
+								if($ID_carte == 74 && $capitol==48 && $txt_versete == '4 5:') $txt_versete = 'Mal 4:5';								
+								if($ID_carte == 74 && $capitol==49 && $txt_versete == '3 1:') $txt_versete = 'Za 3:1';								
+								if(trim($txt_versete) == '') {
+									continue;
+								} 
+								if(($start = strpos($txt_versete, 'Epist 30:')) !== FALSE) $txt_versete = 'Epist 1:30';
+								if(($start = strpos($txt_versete, 'Ir 10:10 ')) !== FALSE) $txt_versete = 'Ir 10:10';
+								if(($start = strpos($txt_versete, 'Ir 33:22')) !== FALSE) $txt_versete = 'Ir 33:13';
+								if(($start = strpos($txt_versete, 'Ir 33:22')) !== FALSE) $txt_versete = 'Ir 33:13';
+								if(($start = strpos($txt_versete, 'Ir 33:17 (')) !== FALSE) $txt_versete = 'Ir 33:17';
+								if(($start = strpos($txt_versete, 'Ir 34:14-17 (')) !== FALSE) $txt_versete = 'Ir 34:14-17';
+								if(($start = strpos($txt_versete, 'Ir 33:15 (')) !== FALSE) $txt_versete = 'Ir 33:15';
+								if(($start = strpos($txt_versete, 'Ios 13:14 (')) !== FALSE) $txt_versete = 'Ios 13:14';
+								if(($start = strpos($txt_versete, 'Dt 32:35 (')) !== FALSE) $txt_versete = 'Dt 32:35';
+								if(($start = strpos($txt_versete, 'Za 12:11 (')) !== FALSE) $txt_versete = 'Za 12:11';
+								if(($start = strpos($txt_versete, 'Is 23:17 (')) !== FALSE) $txt_versete = 'Is 23:17';
+								if(($start = strpos($txt_versete, 'Ir 50:39 (')) !== FALSE) $txt_versete = 'Ir 50:39';
+								if(($start = strpos($txt_versete, 'Is 23:17 (')) !== FALSE) $txt_versete = 'Is 23:17';
+								if(($start = strpos($txt_versete, 'Iz 27:32 (')) !== FALSE) $txt_versete = 'Iz 27:32';
+								if(($start = strpos($txt_versete, 'Is 23:17 (')) !== FALSE) $txt_versete = 'Is 23:17';
+								if(($start = strpos($txt_versete, 'Is 23:17 (')) !== FALSE) $txt_versete = 'Is 23:17';
+								if(($start = strpos($txt_versete, 'Is 23:17 (')) !== FALSE) $txt_versete = 'Is 23:17';
+								if(($start = strpos($txt_versete, 'Mt 23_34:')) !== FALSE) $txt_versete = 'Mt 23:34';
+								if(($start = strpos($txt_versete, '(T. M.)')) !== FALSE) {
+								    $text2 = str_replace("(T. M.)", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(T.M.)')) !== FALSE) {
+								    $text2 = str_replace("(T.M.)", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(TM)')) !== FALSE) {
+								    $text2 = str_replace("(TM)", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(T. M')) !== FALSE) {
+								    $text2 = str_replace("(T. M", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(T. M.')) !== FALSE) {
+								    $text2 = str_replace("(T. M.", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(T.M.')) !== FALSE) {
+								    $text2 = str_replace("(T.M.", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(]n TM)')) !== FALSE) {
+								    $text2 = str_replace("(]n TM)", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(]n T.M.')) !== FALSE) {
+								    $text2 = str_replace("(]n T.M.", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(in T.M.)')) !== FALSE) {
+								    $text2 = str_replace("(in T.M.)", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								if(($start = strpos($txt_versete, '(T.')) !== FALSE) {
+								    $text2 = str_replace("(T.", "", $txt_versete);
+								    $txt_versete = $text2;
+								}
+								$start = strpos($txt_versete, " ");
+								$to_carte = substr($txt_versete, 0, $start);
+								$verse = substr($txt_versete, $start+1);
+								$start = strpos($verse, ":");
+								$to_capitol = substr($verse, 0, $start);
+								$to_verset = substr($verse, $start+1);
+								$to_panala = $to_verset;
+								if(($start = strpos($to_verset, '-')) !== FALSE) { 
+									$to_panala = substr($to_verset, $start+1);
+									$to_verset = intval($to_verset);
+								}
+								if(!isset($trimiteri[$to_carte])) {
+									$trim = 0;
+								}
+								else 
+									$trim = $trimiteri[$to_carte];
+								if( intval($to_capitol) == 0 ||
+								    intval($to_verset) == 0 )   {
+								    	echo "stop2 $ID_carte, $capitol, $id_verset, $nr_verset";
+								}
+								if($ID_carte==9 && $capitol==2 && $nr_verset==6) {
+									echo "stop trimi";
+								}
+								
+								$sql = "insert into _bbl_trimiteri$idtrad values ($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, 0, 0, $ndx_trimitere, 0,
+								    $trim, '$to_carte',  $to_capitol, $to_verset, '$txt_versete', $to_capitol, $to_panala )";
+						        db_query($sql);
+							}
+						}
+					}		
+		    	}
+		    }    
+		    $sql = "select * from _bbl_note6 " ;
+	        $result2 = db_query($sql);
+		    foreach ($result2 as $record2) {
+		    	if( strpos( $record2->nota_text, 'index-D.php?id=NT') === 0 ) {
+					$site = 'http://www.dervent.ro/s/b/' . $record2->nota_text;
+					$site = 'http://www.biblia-bartolomeu.ro/' . $record2->nota_text;
+					{
+						// create curl resource
+						$ch = curl_init();
+					
+						// set url
+						curl_setopt($ch, CURLOPT_URL, $site);
+					
+						//return the transfer as a string
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+					
+						//curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+						//curl_setopt($ch, CURLOPT_PROXY, "192.168.1.29:8080");
+	                    //curl_setopt($ch, CURLOPT_PROXYUSERPWD, "cna:jkl;'\\");
+					
+						//pretend you came from their site already
+						curl_setopt($ch, CURLOPT_REFERER, 'http://www.dervent.ro');
+					
+						//pretend you are firefox 3.06 running on windows Vista
+						curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+					
+						// $output contains the output string
+						$output = curl_exec($ch);
+					
+						// close curl resource to free up system resources
+						curl_close($ch);
+						
+						if($output == false) {
+							echo "stop 111";
+						}
+						else {
+							$start = strpos($output, '<div align=justify style="padding:12px">');
+							$stop = strpos($output, '</div>');
+							if($start  === FALSE || $stop  === FALSE) {
+								echo "stop 222";
+							}
+							else {
+								$out = substr($output, $start+strlen('<div align=justify style="padding:12px">'), $stop-$start - strlen('<div align=justify style="padding:12px">')); 
+								foreach($sCaractere as $sCaracter) {
+									$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+									$out = $output;
+								}
+								$output = str_replace("<br />", "\r\n", $out);
+								$out = str_replace("\\'", "'", $output);
+								$output = str_replace("'", "''", $out);
+								
+								 $sql = "update _bbl_note6 set nota_text = '$output' where ID_carte = " . $record2->ID_carte . " and ID_verset = " . $record2->ID_verset . " and id_nota = " . $record2->id_nota  ;
+		                         db_query($sql);
+							}
+						}
+					}
+			    }
+		    }
+			
+		}
+		if($idtrad == 2) {
+			$site = $record->site;
+			$pattern_carte = $record->pattern_carte;
+				
+			$carti = Array();
+			$pages = Array();
+			$trimiteri = Array();
+			$sql = "select * from _bbl_carte where ID_traducere = $idtrad order by ID_carte" ;
+			$result2 = db_query($sql);
+			@mkdir($idtrad,'0777');
+			foreach ($result2 as $record2) {    //audio
+				$ID_carte = $record2->ID_carte;
+				$capitole = $record2->capitole;
+				$page = $record2->page;
+				$trim = $record2->trimitere;
+				$pages[$page] = $ID_carte;
+				$trimiteri[$trim] = $ID_carte;
+				$carti[$ID_carte] = Array('page'=>$page, 'trim'=>$trim, 'capitole'=>$capitole);
+
+				$crt99 = sprintf('%02d', $ID_carte);
+				$url = str_replace('<crt>', $page, $pattern_carte);
+
+				$filename = $idtrad . '/' . $crt99 . "_" . $record2->page . ".html";
+				if(!file_exists($filename) ) {
+					// create curl resource
+					$ch = curl_init();
+
+					// set url
+					curl_setopt($ch, CURLOPT_URL, $url);
+
+					//return the transfer as a string
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+					curl_setopt($ch, CURLOPT_HEADER, 0);
+
+					curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+
+					//pretend you came from their site already
+					curl_setopt($ch, CURLOPT_REFERER, $record->site);
+
+					curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
+
+					//pretend you are firefox 3.06 running on windows Vista
+					curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+
+					// $output contains the output string
+					$output = curl_exec($ch);
+
+					// close curl resource to free up system resources
+					curl_close($ch);
+
+					$start = strpos($output, "</td><td valign='top'>");
+					$end = strpos($output, '</td></tr></table></body></html>');
+					$out =  substr ( $output , $start + 22 , $end - $start - 22 );
+					$output = iconv("iso-8859-2","utf-8",$out);;
+					file_put_contents($filename, $output);
+				}
+			}
+
+			foreach ($carti as $ID_carte => $carte) {
+//				if($ID_carte < 40) {
+//					continue;
+//				}
+
+				$page = $carte['page'];
+				$trim = $carte['trim'];
+				$capitole = $carte['capitole'];
+				$crt99 = sprintf('%02d', $ID_carte);
+				$filename = $idtrad . '/' . $crt99 . "_" . $page . ".html";
+				$output = file_get_contents($filename);
+				$out = $output; //str_replace("<br>", "", $output);
+				foreach($sCaractere as $sCaracter) {
+					$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+					$out = $output;
+				}
+				$output = $out;
+
+//				$sql = "delete from bbl_trimiteri where ID_traducere=$idtrad and ID_carte=$ID_carte " ;
+//				db_query($sql);
+//				$sql = "delete from bbl_verset where ID_traducere=$idtrad and ID_carte=$ID_carte " ;
+//				db_query($sql);
+//				$sql = "delete from bbl_note where ID_traducere=$idtrad and ID_carte=$ID_carte " ;
+//				db_query($sql);
+//
+//				if($ID_carte >= 40) {
+//					$sql = "delete from bbl_cuvinte_iisus where ID_traducere=$idtrad and ID_carte=$ID_carte " ;
+//					db_query($sql);
+//				}
+				
+				$nr_verset = 0;
+				$nr_capitol = 0;
+				$id_verset = 0;
+				$list = explode("<a name=", $output);
+				foreach($list as $line) {
+					if(($start = strpos($line, '<h1>')) !== FALSE) { //titlu carte
+						$stop = strpos($line, '</h1>');
+						$txt_trimiteri = '';
+						if(($start2 = strpos($line, "<div class='xrf'>")) !== FALSE) { //trimiteri titlu
+							$stop2 = strpos($line, '</div>', $start2);
+							$txt_trimiteri = substr($line, $start2+17, $stop2-$start2-17);
+						}
+						biblia_scrie_verset($idtrad, $ID_carte, $nr_capitol+1, -1, $nr_verset+1, 2, substr($line, $start+4, $stop-$start-4), $txt_trimiteri);
+					}
+					else if(($start = strpos($line, '></a><h2>')) !== FALSE) { //capitol
+						$stop = strpos($line, '</h2>');
+						$line2 = substr($line, $stop+5);
+						$list2 = explode("<h3>", $line2);
+						$nr_capitol++;
+						$id_verset = 0;
+						$nr_verset = 0;
+						foreach($list2 as $line2) {
+							$list3 = explode("<span class='nrver'>", $line2);
+							foreach($list3 as $line3) {
+								if(($stop = strpos($line3, '</h3>')) !== FALSE) { //titlu
+									$id_verset++;
+									$txt_trimiteri = '';
+									if(($start2 = strpos($line3, "<div class='xrf'>")) !== FALSE) { //trimiteri titlu
+										$stop2 = strpos($line3, '</div>', $start2);
+										$txt_trimiteri = substr($line3, $start2+17, $stop2-$start2-17);
+									}
+									$text = substr($line3, 0, $stop);
+									biblia_scrie_verset($idtrad, $ID_carte, $nr_capitol, $id_verset, $nr_verset+1, 1, $text, $txt_trimiteri);
+								}
+								else if(($stop = strpos($line3, "<span class='txtver'>")) !== FALSE) { //verset
+									$id_verset++;
+									$nr_verset++;
+									if($nr_verset != intval(substr($line3, 0,$stop))) {
+										echo "Eroare numar verset " . ($nr_verset) . " $capitol $ID_carte <br>";
+									}
+									$txt_trimiteri = '';
+									if(($start2 = strpos($line3, "<div class='xrf'>")) !== FALSE) { //trimiteri verset
+										$stop2 = strpos($line3, '</div>', $start2);
+										$txt_trimiteri = substr($line3, $start2+17, $stop2-$start2-17);
+									}
+									else {
+										$start2 = strlen($line3);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Ps. 38; 70, titlu")) !== FALSE) {
+										$txt_trimiteri = str_replace("Ps. 38; 70, titlu", "Ps. 38; Ps. 70", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Ier. 46:13; Ezec. 29; 30. ")) !== FALSE) {
+										$txt_trimiteri = str_replace("Ier. 46:13; Ezec. 29; 30. ", "Ier. 46:13; Ezec. 29; Ezec 30", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Deut. 4; 20; ")) !== FALSE) {
+										$txt_trimiteri = str_replace("Deut. 4; 20; ", "Deut. 4:20; ", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Num. 14:22; Ps. 78:40; 958, 9, 10. ")) !== FALSE) {
+										$txt_trimiteri = str_replace("Num. 14:22; Ps. 78:40; 958, 9, 10. ", "Num. 14:22; Ps. 78:40; Ps. 95:8, 9, 10", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Isa. 23; Ezec. 26; Ezec. 27; 28; Amos 1:9. ")) !== FALSE) {
+										$txt_trimiteri = str_replace("Isa. 23; Ezec. 26; Ezec. 27; 28; Amos 1:9. ", "Isa. 23; Ezec. 26; Ezec. 27; Ezec. 28; Amos 1:9", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Ps. 34:7; Zah. 13:7; Evr. 1:14; . ")) !== FALSE) {
+										$txt_trimiteri = str_replace("Ps. 34:7; Zah. 13:7; Evr. 1:14; . ", "Ps. 34:7; Zah. 13:7; Evr. 1:14", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Rom. 9:0; Rom. 10:0; Rom. 11:0")) !== FALSE) {
+										$txt_trimiteri = str_replace("Rom. 9:0; Rom. 10:0; Rom. 11:0", "Rom. 9:10-11", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Ps. 16:9, 10; Ps. 22:0; Ps. 132:11")) !== FALSE) {
+										$txt_trimiteri = str_replace("Ps. 16:9, 10; Ps. 22:0; Ps. 132:11", "Ps. 16:9, 10; Ps. 22; Ps. 132:11", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Prov. 9:0")) !== FALSE) {
+										$txt_trimiteri = str_replace("Prov. 9:0", "Prov. 9:3,4,5", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Ioan 7:39; Ioan 14:16; Ioan 26:0; Ioan 15:26.")) !== FALSE) {
+										$txt_trimiteri = str_replace("Ioan 7:39; Ioan 14:16; Ioan 26:0; Ioan 15:26.", "Ioan 7:39; Ioan 14:16; Ioan 14:26; Ioan 15:26.", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Luc. 22:66; Luc. 23:0")) !== FALSE) {
+										$txt_trimiteri = str_replace("Luc. 22:66; Luc. 23:0", "Luc. 22:66; Luc. 23:11", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Luc. 24:26; Ps. 22:0; Isa. 50:6")) !== FALSE) {
+										$txt_trimiteri = str_replace("Luc. 24:26; Ps. 22:0; Isa. 50:6", "Luc. 24:26; Ps. 22; Isa. 50:6", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Rom. 4:0.")) !== FALSE) {
+										$txt_trimiteri = str_replace("Rom. 4:0.", "Rom. 4", $txt_trimiteri);
+									}
+									if(($start3 = strpos($txt_trimiteri, "Efes. 2:19; Evr. 36:0")) !== FALSE) {
+										$txt_trimiteri = str_replace("Efes. 2:19; Evr. 36:0", "Efes. 2:19; Evr. 10:36", $txt_trimiteri);
+									}
+									$text=substr($line3, $stop+21, $start2-$stop-21);
+									
+									if($ID_carte == 40 && $nr_capitol == 16 && $nr_verset == 18) {
+										echo "stop:";
+									}
+									
+									biblia_scrie_verset($idtrad, $ID_carte, $nr_capitol, $id_verset, $nr_verset, 0, $text, $txt_trimiteri);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if($idtrad == 4) {
+			$site = $record->site;
+			$pattern_capitol = $record->pattern_capitol; //http://biblia.resursecrestine.ro/<crt>/<cap>
+			$pattern_audio = $record->pattern_audio;     //http://78.46.49.44/resurse-audio/biblia/VDC-CM/<crt99>-<trim>/<crt99>-<cap999>.mp3
+
+			$carti = Array();
+			$pages = Array();
+			$trimiteri = Array();
+			$sql = "select * from _bbl_carte where ID_traducere = $idtrad order by ID_carte" ;
+			$result2 = db_query($sql);
+			@mkdir($idtrad,'0777');
+			foreach ($result2 as $record2) {
+				$ID_carte = $record2->ID_carte;
+				$capitole = $record2->capitole;
+				$page = $record2->page;
+				$trim = $record2->trimitere;
+				$pages[$page] = $ID_carte;
+				$trimiteri[$trim] = $ID_carte;
+				$carti[$ID_carte] = Array('page'=>$page, 'trim'=>$trim, 'capitole'=>$capitole);
+
+				$crt99 = sprintf('%02d', $ID_carte);
+				$url = str_replace('<crt99>', $crt99, $pattern_audio);
+				$url = str_replace('<trim>', $trim, $url);
+				//@mkdir($idtrad . '/' . $crt99 . '_' . $page,'0777');
+				if($ID_carte == 62) $url = 'http://78.46.49.51/resurse-audio/biblia/VDC-CM/62-1Ioan//62-<cap999>-(www.resursecrestine.ro).mp3';
+				if($ID_carte == 50) $url = 'http://78.46.49.51/resurse-audio/biblia/VDC-CM/50-Fil/50-<cap999>.mp3';
+				if($ID_carte == 44) $url = 'http://78.46.49.51/resurse-audio/biblia/VDC-CM/44-Fapte/44-<cap999>.mp3';
+				if($ID_carte == 41) $url = 'http://78.46.49.44/resurse-audio/biblia/VDC-CM/41-Mc//41-<cap999>-(www.resursecrestine.ro).mp3';
+				if($ID_carte == 25) $url = 'http://78.46.49.44/resurse-audio/biblia/VDC-CM/25-Plan/25-<cap999>.mp3';
+				if($ID_carte == 23) $url = 'http://78.46.49.44/resurse-audio/biblia/VDC-CM/23-Is/23-<cap999>.mp3';
+				if($ID_carte == 21) $url = 'http://78.46.49.44/resurse-audio/biblia/VDC-CM/21-Ecles/21-<cap999>.mp3';
+				if($ID_carte == 13) $url = 'http://78.46.49.51/resurse-audio/biblia/VDC-CM/13-1Cr/13-<cap999>.mp3';
+				if($ID_carte == 14) $url = 'http://78.46.49.51/resurse-audio/biblia/VDC-CM/14-2Cr/14-<cap999>.mp3';
+
+				$url_cap = str_replace('<crt>', $record2->page, $record->pattern_capitol);
+				for($capitol = 1; $capitol <= $capitole; $capitol++) {
+					$cap999 = sprintf('%03d', $capitol);
+					$url2 = str_replace('<cap999>', $cap999, $url);
+					$filename = $idtrad . '/' . $crt99 . '_' . $page . '/' . $crt99 . '_' .  $page . '_' . $cap999 . '.mp3';
+					if(1==0 && !file_exists($filename) ) {
+						if(!copy($url2,  $filename)) {
+							echo "error copy $url2 into $filename<br>";
+						}
+					}
+
+					$url = str_replace('<crt>', $record2->page, $record->pattern_capitol);
+					$url2 = str_replace('<cap>', $capitol, $url_cap);
+					$filename = $idtrad . '/' . $crt99 . "_" . $record2->page . "_" . $cap999 . ".html";
+
+					if(!file_exists($filename) ) {
+						// create curl resource
+						$ch = curl_init();
+
+						// set url
+						curl_setopt($ch, CURLOPT_URL, $url2);
+
+						//return the transfer as a string
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+						//curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+
+						//pretend you came from their site already
+						curl_setopt($ch, CURLOPT_REFERER, $record->site);
+
+						//pretend you are firefox 3.06 running on windows Vista
+						curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+
+						// $output contains the output string
+						$output = curl_exec($ch);
+
+						// close curl resource to free up system resources
+						curl_close($ch);
+
+						$start = strpos($output, '<div id="biblia-text" class="bible-resized-text">');
+						$end = strpos($output, '</ul>',$start);
+						$out =  substr ( $output , $start + 49, $end - $start - 49 );
+
+						file_put_contents($filename, $out);
+					}
+				}
+			}
+
+			foreach ($carti as $ID_carte => $carte) {
+				$page = $carte['page'];
+				$trim = $carte['trim'];
+				$capitole = $carte['capitole'];
+				$crt99 = sprintf('%02d', $ID_carte);
+				for($capitol = 1; $capitol <= $capitole; $capitol++) {
+					$cap999 = sprintf('%03d', $capitol);
+
+//					if($ID_carte <  66 
+//							|| ($ID_carte == 66 && $capitol < 19) )
+//						continue;
+					$out = file_get_contents($idtrad . '/' . $crt99 . "_" . $page . "_" . $cap999 . ".html");
+					$list = explode('<li ', $out);
+					$nr_verset = 0;
+					$id_verset = 0;
+					$trimiteri['Fac'] = 1;
+					$trimiteri['2Ex'] = 2;  $trimiteri['Exec'] = 2;
+					$trimiteri['Deu'] = 5;
+					$trimiteri['Tef'] = 36;
+					$trimiteri['1Isa'] = 23;  //isaia
+					$trimiteri['1Imp'] = 11;
+					$trimiteri['2Imp'] = 12;
+					$trimiteri['1Cro'] = 13;
+					$trimiteri['2Cro'] = 14;
+					$trimiteri['Mica'] = 33;
+					$trimiteri['Luca'] = 42;
+					$trimiteri['Pl'] = 25;  $trimiteri['Plin'] = 25;   $trimiteri['Plan'] = 25;  $trimiteri[$carti[25]['trim'] . 'g'] = 25;   // Plang
+					$trimiteri['Ose'] = 28;
+					$trimiteri['Cant'] = 22;
+					$trimiteri['Fap'] = 44;
+					$trimiteri['Ioa'] = 43;   //ioan
+					$trimiteri['1Petr'] = 60;
+					$trimiteri['Nah'] = 34;    //naum
+					$trimiteri['Nem'] = 16; $trimiteri['1Neem'] = 16;   //neemia
+					$trimiteri['Jude'] = 7;    //judecatori
+					$trimiteri['Ezr'] = 15;
+					$trimiteri['Ecle'] = 21;
+					$trimiteri['1Sa'] = 9;  $trimiteri['1Samue'] = 9;  //1-samuel
+					$trimiteri['Habac'] = 35;
+					$trimiteri['Mar'] = 41;
+					$trimiteri['2Co'] = 47;
+					$trimiteri['Ev'] = 58;
+					$trimiteri['1Ioa'] = 62;
+					$trimiteri['Leut'] = 3;
+					$trimiteri['1Dan'] = 27;
+					$trimiteri['1Pert'] = 60;
+					$trimiteri['Apocalips'] = 66;
+					$trimiteri['Apoc'] = 66; $trimiteri['Ap'] = 66;
+					$sql = "delete from bbl_trimiteri where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol" ;
+					db_query($sql);
+//					$sql = "delete from bbl_verset where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol" ;
+//					db_query($sql);
+//					$sql = "delete from bbl_cuvinte_iisus where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol" ;
+//					db_query($sql);
+					
+					foreach($list as $line) {
+						$id_verset++;
+						if(strpos($line, 'id="verslist"')) {
+							$id_verset--;
+							continue;
+						}
+						else if(($start = strpos($line, 'class="versetTitlu">')) !== FALSE) { //titlu
+							$stop = strpos($line, '</li>');
+							if($stop < 20) {
+								echo "Eroare titlu verset " . ($nr_verset+1) . " $capitol $ID_carte <br>";
+							}
+							else {
+								$text = substr($line, $start+20, $stop-20);
+//								$sql = "insert into bbl_verset (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, norder, titlu, text) 
+//								  values($idtrad, $ID_carte, $capitol, $id_verset, " . (1+$nr_verset) . ", 0, 1, '$text')" ;
+								$sql = "update _bbl_verset set text='$text', original='$text', trimiteri='' 
+	        						where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol and nr_verset=$nr_verset and titlu=$titlu " ;
+								db_query($sql);
+							}
+						}
+						else if(($start = strpos($line, 'id="verset_')) !== FALSE) { //verset
+							$start = strpos($line, '<sup>');
+							$stop = strpos($line, '</sup>');
+							if($stop < $start) {
+								echo "Eroare nr verset " . ($nr_verset+1) . " $capitol $ID_carte <br>";
+							}
+							else {
+								$verset = substr($line, $start+5, $stop-$start-5);
+								if(intval($verset) != ($nr_verset + 1)) {
+									echo "Eroare count verset " . ($nr_verset+1) . " $capitol $ID_carte <br>";
+								}
+								else {
+									$start = strpos($line, '<span class="continut-verset">');
+									$stop = strpos($line, '</span>' , $start);
+									$text_ascii = str_replace("^", "", iconv('UTF-8', 'ASCII//TRANSLIT', $line));
+									$start2 = strpos($text_ascii, '<span class="continut-verset">');
+									$start_Iisus = strpos($line, "<span class='Isus'>");
+									$cuvinte_Iisus = 0; 
+									while($start_Iisus !== FALSE){
+										
+									    $start_Iisus_utf8 = strpos($text_ascii, "<span class='Isus'>");
+										$stop_Iisus = strpos($line, "</span>", $start_Iisus);
+										$stop_Iisus_utf8 = strpos($text_ascii, "</span>", $start_Iisus_utf8);
+										$stop = strpos($line, '</span>' , $stop_Iisus+7);
+	
+										$pos_dela = $start_Iisus - $start - 30;
+										$pos_panala = $stop_Iisus - $start - 30 - 19;
+										$pos_utf8_dela = $start_Iisus_utf8 - $start2 - 30;
+										$pos_utf8_panala = $stop_Iisus_utf8 - $start2 - 30 - 19;
+										
+										$sql = "insert into bbl_cuvinte_iisus (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, cuvinte_index, pos_dela, pos_panala, pos_utf8_dela, pos_utf8_panala)
+										values($idtrad, $ID_carte, $capitol, $id_verset, " . (1+$nr_verset) . ", $cuvinte_Iisus, $pos_dela, $pos_panala, $pos_utf8_dela, $pos_utf8_panala)" ;
+										db_query($sql);
+										$cuvinte_Iisus++;
+										
+										$text2 = substr($line,0,$start_Iisus) . substr($line,$start_Iisus + 19,$stop_Iisus-$start_Iisus-19) . substr($line,$stop_Iisus+7);
+										$line = $text2;
+										$text2 = substr($text_ascii,0,$start_Iisus_utf8) . substr($text_ascii,$start_Iisus_utf8 + 19,$stop_Iisus_utf8-$start_Iisus_utf8-19) . substr($text_ascii,$stop_Iisus_utf8+7);
+										$text_ascii = $text2;
+										$start_Iisus = strpos($line, "<span class='Isus'>");
+									}
+									if($cuvinte_Iisus > 0) {
+										$start = strpos($line, '<span class="continut-verset">');
+										$stop = strpos($line, '</span>' , $start);
+									}
+	
+									if($stop < $start) {
+										echo "Eroare text verset " . ($nr_verset+1) . " $capitol $ID_carte <br>";
+									}
+									else {
+										$text = substr($line, $start+30, $stop-$start-30);
+										$nr_verset++;
+										$sql = "insert into bbl_verset (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, norder, titlu, text) 
+										values($idtrad, $ID_carte, $capitol, $id_verset, " . $nr_verset . ", 0, 0, '$text')" ;
+										db_query($sql);
+									}
+								}
+							}
+						}
+						else if(($start = strpos($line, 'class="trimiteriText">')) !== FALSE) { //trimiteri
+							$trimi = explode('href="/', $line);
+							$id_verset--;
+							if($ID_carte==40 && $capitol==4 && $nr_verset==6) {
+								echo "stop.";
+							}
+							foreach($trimi as $id => $xtrim) {
+								if($id == 0)
+									continue;
+	
+								if(($start = strpos($xtrim, '>28.4Ex 6.7</a>')) !== FALSE){
+									$xtrim = str_replace('>28.4Ex 6.7</a>', '>Ex 6.7</a>', $xtrim);
+									$sql = "insert into bbl_trimiteri (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, pozitie, pos_utf8, to_carte, trimitere, to_capitol, to_verset, txt_versete, to_capitol_panala, to_panala)
+									values($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, 0, 0, 1, 'Gen', 28, 4, 'Gen 28.4', 28, 4)" ;
+									db_query($sql);
+								}
+								if(($start = strpos($xtrim, '>17.4-7Gen 17.8</a>')) !== FALSE){
+									$xtrim = str_replace('>17.4-7Gen 17.8</a>', '>Gen 17.8</a>', $xtrim);
+									$sql = "insert into bbl_trimiteri (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, pozitie, pos_utf8, to_carte, trimitere, to_capitol, to_verset, txt_versete, to_capitol_panala, to_panala)
+									values($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, 0, 0, 1, 'Gen', 17, 4, 'Gen 17.4', 17, 7)" ;
+									db_query($sql);
+								}
+								if(($start = strpos($xtrim, '>17.4-7Gen 28.4</a>')) !== FALSE){
+									$xtrim = str_replace('>17.4-7Gen 28.4</a>', '>Gen 28.4</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Ezec 14.7-8Ps</a>')) !== FALSE){
+									$xtrim = str_replace('>Ezec 14.7-8Ps</a>', '>Ezec 14.7-8</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>32.3Deut 2.1-4</a>')) !== FALSE){
+									$xtrim = str_replace('>32.3Deut 2.1-4</a>', '>Deut 2.1-4</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Jud 18.2-14Jud</a>')) !== FALSE){
+									$xtrim = str_replace('>Jud 18.2-14Jud</a>', '>Jud 18.2-14</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Rut 3.2-12Rut</a>')) !== FALSE){
+									$xtrim = str_replace('>Rut 3.2-12Rut</a>', '>Rut 3.2-12</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>17.1Iov 1.1</a>')) !== FALSE){
+									$xtrim = str_replace('>17.1Iov 1.1</a>', '>Iov 1.1</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Ps 136.1-Cron</a>')) !== FALSE){
+									$xtrim = str_replace('>Ps 136.1-Cron</a>', '>Ps 136.1</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Ezra 3.8-10.Ezra</a>')) !== FALSE){
+									$xtrim = str_replace('>Ezra 3.8-10.Ezra</a>', '>Ezra 3.8-10</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Dan 9.17-18Dan</a>')) !== FALSE){
+									$xtrim = str_replace('>Dan 9.17-18Dan</a>', '>Dan 9.17-18</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Ps 123.3-4Ps</a>')) !== FALSE){
+									$xtrim = str_replace('>Ps 123.3-4Ps</a>', '>Ps 123.3-4</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Ps 139.14-16.Nu</a>')) !== FALSE){
+									$xtrim = str_replace('>Ps 139.14-16.Nu</a>', '>Ps 139.14-16</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, 'isaia#verset-12">Isac 1.12</a>')) !== FALSE){
+									$xtrim = str_replace('isaia#verset-12">Isac 1.12</a>', 'iacov#verset-12">Iac 1.12</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>32.7Ps 17.8</a>')) !== FALSE){
+									$xtrim = str_replace('>32.7Ps 17.8</a>', '>Ps 17.8</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, 'marcu/15#verset-23">Mare 15.23</a>')) !== FALSE){
+									$xtrim = str_replace('marcu/15#verset-23">Mare 15.23</a>', 'marcu/15#verset-23">Marc 15.23</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Ps 78.18-56.1Cor</a>')) !== FALSE){
+									$xtrim = str_replace('>Ps 78.18-56.1Cor</a>', '>Ps 78.18-56</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, 'filimon#verset-6">Filp 1.6</a>')) !== FALSE){
+									$xtrim = str_replace('filimon#verset-6">Filp 1.6</a>', 'filipeni#verset-6">Filip 1.6</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>29.10Ier 32.41</a>')) !== FALSE){
+									$xtrim = str_replace('>29.10Ier 32.41</a>', '>Ier 32.41</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>29.10Ier 33.7</a>')) !== FALSE){
+									$xtrim = str_replace('>29.10Ier 33.7</a>', '>Ier 33.7</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>29.10Ier 42.10</a>')) !== FALSE){
+									$xtrim = str_replace('>29.10Ier 42.10</a>', '>Ier 42.10</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>18.1-2Ios 13.14-33</a>')) !== FALSE){
+									$xtrim = str_replace('>18.1-2Ios 13.14-33</a>', '>Ios 13.14-33</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>10.8-16Luc 2.19-51</a>')) !== FALSE){
+									$xtrim = str_replace('>10.8-16Luc 2.19-51</a>', '>Luc 2.19-51</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>5.5Osea 8.11</a>')) !== FALSE){
+									$xtrim = str_replace('>5.5Osea 8.11</a>', '>Osea 8.11</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>5.5Osea 10.1</a>')) !== FALSE){
+									$xtrim = str_replace('>5.5Osea 10.1</a>', '>Osea 10.1</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>35.5Amos 1.11</a>')) !== FALSE){
+									$xtrim = str_replace('>35.5Amos 1.11</a>', '>Amos 1.11</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Isa 35.3-4Evr</a>')) !== FALSE){
+									$xtrim = str_replace('>Isa 35.3-4Evr</a>', '>Isa 35.3-4</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>37.21Amos 9.14</a>')) !== FALSE){
+									$xtrim = str_replace('>37.21Amos 9.14</a>', '>Amos 9.14</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, 'marcu/13#verset-22">Luc 13')) !== FALSE){
+									$xtrim = 'luca/13#verset-22">Luc 13.22</a>';
+								}
+								if(($start = strpos($xtrim, '>12.42Fapt 8.1</a>')) !== FALSE){
+									$xtrim = str_replace('>12.42Fapt 8.1</a>', '>Fapt 8.1</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>12.42Fapt 9.1</a>')) !== FALSE){
+									$xtrim = str_replace('>12.42Fapt 9.1</a>', '>Fapt 9.1</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>12.42Fapt 26.9-11</a>')) !== FALSE){
+									$xtrim = str_replace('>12.42Fapt 26.9-11</a>', '>Fapt 26.9-11</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>19.30Ioan 14.31</a>')) !== FALSE){
+									$xtrim = str_replace('>19.30Ioan 14.31</a>', '>Ioan 14.31</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>19.30Ioan 15.10</a>')) !== FALSE){
+									$xtrim = str_replace('>19.30Ioan 15.10</a>', '>Ioan 15.10</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>Tit 2.11-12.1Pet</a>')) !== FALSE){
+									$xtrim = str_replace('>Tit 2.11-12.1Pet</a>', '>Tit 2.11-12</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '2-corinteni/6#verset-4">2Col 6.4</a>')) !== FALSE){
+									$xtrim = str_replace('2-corinteni/6#verset-4">2Col 6.4</a>', 'coloseni/6#verset-4">Col 6.4</a>', $xtrim);
+								}
+								if(($start = strpos($xtrim, '>16.15Ps 102.26</a>')) !== FALSE){
+									$xtrim = str_replace('>16.15Ps 102.26</a>', '>Ps 102.26</a>', $xtrim);
+								}
+								// coloseni#verset-16">Col 1.16-17</a>
+								// psalmii/89#verset-11">Ps 89.11-12</a>
+								// plangerile-lui-ieremia/2#verset-9">Pl</a>
+								$carte = 0;
+								$to_verset = 0;
+								$to_panala = 0;
+								$to_capitol = 0;
+								$pos1 = strpos($xtrim, 'verset-');
+								$pos2 = strpos($xtrim, '">');
+								$pos3 = strpos($xtrim, ' ', $pos2);
+								$pos4 = strpos($xtrim, '.', $pos2);
+								$pos5 = strpos($xtrim, '-', $pos2);
+								$pos6 = strpos($xtrim, '</a>', $pos2);
+								
+								$txt_trimitere = substr($xtrim,$pos2+2, $pos6-$pos2-2);
+	
+								$pos0 = strpos($xtrim, '/');
+								if($pos0 === FALSE || $pos0 > $pos1)  {
+									$pos0 = $pos1-1;
+									$to_capitol = 1;
+								}
+								else {
+									$to_capitol = substr($xtrim, $pos0+1, $pos1-$pos0-2);
+								}
+								$pos7 = strpos($xtrim, ',', $pos2);
+								if($pos7 > 0 && $pos7 < $pos6)  $pos4 = $pos7;
+								$crt = substr($xtrim, 0, $pos0);
+								$carte = $pages[$crt];
+								$to_verset = substr($xtrim, $pos1+7, $pos2-$pos1-7);
+								$to_panala = $to_verset;
+	
+								if($pos5 > $pos4 && $pos5 < $pos6) {
+									$to_panala = substr($xtrim, $pos5+1, $pos6-$pos5-1);
+								}
+								if($pos4 === FALSE || $pos4 >= $pos6) {    // 1-cronici/14#verset-1">1Cron 14</a>
+									$to_panala = 0; //etc
+								}
+								else if($pos4 < $pos3) {  //leviticul/11#verset-1">Lev.Cap 11</a>
+									$to_panala = 0; //etc
+									$pos3 = $pos4;
+								}
+								else {
+									if($pos3 === FALSE || $pos3 >= $pos6)  {
+										$pos3 = $pos6;
+									}
+									else {
+										$to_capitol = substr($xtrim, $pos3+1, $pos4-$pos3-1);
+									}
+								}
+								$ztrim = substr($xtrim, $pos2+2, $pos3-$pos2-2);
+	
+								if($ID_carte==1 && $capitol==8 && $nr_verset==20)
+									$ztrim = 'Lev';
+								if($carte == 55 && $ID_carte==1 && $capitol==3 && $nr_verset==16)
+									$carte = $trimiteri[$ztrim];
+								if(($start = strpos($to_panala, '.')) !== FALSE) {
+									$x = substr($to_panala, $start+1, strlen($to_panala)-$start-1);
+									$to_panala = $x;
+								}
+								if(($start = strpos($to_panala, '-')) !== FALSE) {
+									$x = substr($to_panala, $start+1, strlen($to_panala)-$start-1);
+									$to_panala = $x;
+								}
+								if(($start = strpos($ztrim, 'Pl</a>')) !== FALSE) {
+									$ztrim = 'Pl';
+								}
+								if(($start = strpos($ztrim, 'Cap')) !== FALSE) {
+									$ztrim = $carti[$carte]['trim'];
+								}
+								if($ztrim == 'Pl') $to_panala = '' . $to_verset;
+								if($to_panala == 'etc') $to_panala = '0';
+								if($to_capitol == 'Cap 1') $to_capitol = '1';
+								if($carte != $trimiteri[$ztrim] ||
+										$carte == 0 ||
+										$to_verset == 0 ||
+										$to_capitol == 0 ||
+										$to_panala != ('' . intval($to_panala))) {
+									echo "Eroare trim $carte $to_capitol pentru  verset " . $nr_verset . " $capitol $ID_carte <br>";
+								}
+	
+								$sql = "insert into bbl_trimiteri (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, pozitie, pos_utf8, to_carte, trimitere, to_capitol, to_verset, txt_versete, to_capitol_panala, to_panala)
+								values($idtrad, $ID_carte, $capitol, $id_verset, $nr_verset, 0, 0, $carte, '$ztrim', $to_capitol, $to_verset, '$txt_trimitere', $to_capitol, $to_panala)" ;
+								db_query($sql);
+							}
+						}
+					}
+				}
+			}
+		}
+		if($idtrad == 5) {
+			$site = $record->site;
+			$pattern_capitol = $record->pattern_capitol;
+				
+			$sql = "select * from bbl_carte where ID_traducere = $idtrad order by ID_carte" ;
+			$result2 = db_query($sql);
+			$carti = Array();
+			@mkdir($idtrad,'0777');
+			foreach ($result2 as $record2) {    //audio
+				$ID_carte = $record2->ID_carte;
+				$capitole = $record2->capitole;
+				$trim = $record2->trimitere;
+				$titlu = $record2->titlu;
+				$page = $record2->page;  
+				$crt99 = sprintf('%02d', $ID_carte);
+				$carti[$ID_carte] = Array('page'=>$page, 'trim'=>$trim, 'titlu'=>$titlu, 'capitole'=>$capitole);
+
+				$url = str_replace('<crt>', $page, $pattern_capitol);
+				for($capitol = 1; $capitol <= $capitole; $capitol++) {
+					$cap999 = sprintf('%03d', $capitol);
+					$url2 = str_replace('<cap>', $capitol, $url);
+					$filename = $idtrad . '/' . $crt99 . "_" . $titlu . "_" . $cap999 . ".html";
+					
+					if(!file_exists($filename) ) {
+						// create curl resource
+						$ch = curl_init();
+	
+						// set url
+						curl_setopt($ch, CURLOPT_URL, $url2);
+	
+						//return the transfer as a string
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	
+						curl_setopt($ch, CURLOPT_HEADER, 0);
+	
+						curl_setopt ($ch, CURLOPT_CONNECTTIMEOUT, 5);
+	
+						//pretend you came from their site already
+						curl_setopt($ch, CURLOPT_REFERER, $record->site);
+	
+						curl_setopt($ch, CURLOPT_ENCODING, 'UTF-8');
+	
+						//pretend you are firefox 3.06 running on windows Vista
+						curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0');
+	
+						// $output contains the output string
+						$output = curl_exec($ch);
+	
+						// close curl resource to free up system resources
+						curl_close($ch);
+	
+						$start = strpos($output, '<table width="100%">');
+						$end = strpos($output, '</table>');
+						$out =  substr ( $output , $start + 20 , $end - $start - 20 );
+						$output = $out;
+						file_put_contents($filename, $output);
+					}				
+				}
+			}
+
+			foreach ($carti as $ID_carte => $carte) {
+				
+				$page = $carte['page'];
+				$titlu = $carte['titlu'];
+				$capitole = $carte['capitole'];
+				$crt99 = sprintf('%02d', $ID_carte);
+				for($capitol = 1; $capitol <= $capitole; $capitol++) {
+					$cap999 = sprintf('%03d', $capitol);
+					$filename = $idtrad . '/' . $crt99 . "_" . $titlu . "_" . $cap999 . ".html";
+				    $output = file_get_contents($filename);
+					$out = str_replace("<br>", "", $output);
+					foreach($sCaractere as $sCaracter) {
+						$output = str_replace($sCaracter['txt_search'], $sCaracter['txt_replace'], $out);
+						$out = $output;
+					}
+					$output = $out;
+					
+					$sql = "delete from bbl_verset where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol  " ;
+					db_query($sql);
+					$sql = "delete from bbl_verset_lung where ID_traducere=$idtrad and ID_carte=$ID_carte and capitol=$capitol  " ;
+					db_query($sql);
+					
+					$id_verset = 0;
+					$list = explode("<td>", $output);
+					foreach($list as $xid => $line) {
+						if($xid == 0)
+						    continue;
+						$id_verset++;
+									
+						$line2 = explode("</td>", $line);
+											
+						if(($start = strpos($line2[0], ' ' . ($id_verset+1) . '. ')) !== FALSE){
+							$text = substr($line2[0], 0, $start);
+							$sql = "insert into bbl_verset (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, norder, titlu, text)
+							values($idtrad, $ID_carte, $capitol, $id_verset, $id_verset, 0, 0, '$text')" ;
+							db_query($sql);
+							
+							$text = substr($line2[0], $start + strlen(' ' . ($id_verset+1) . '. '));
+							$line2[0] = $text;
+							$id_verset++;
+						}
+						
+						if(strlen($line2[0]) > 400) {
+							$sql = "insert into bbl_verset_lung (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, norder, titlu, text)
+							values($idtrad, $ID_carte, $capitol, $id_verset, $id_verset, 0, 0, '" . $line2[0] . "')" ;
+							db_query($sql);
+							
+							$sql = "insert into bbl_verset (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, norder, titlu, text)
+							values($idtrad, $ID_carte, $capitol, $id_verset, $id_verset, 0, 0, '')" ;
+							db_query($sql);
+						}
+						else {	
+							$sql = "insert into bbl_verset (ID_traducere, ID_carte, capitol, ID_verset, nr_verset, norder, titlu, text)
+							values($idtrad, $ID_carte, $capitol, $id_verset, $id_verset, 0, 0, '" . $line2[0] . "')" ;
+							db_query($sql);
+						}		
+					}
+					if($ID_carte==4 && $capitol==13) {
+						//$sql = "Update bbl_verset v5 set v5.id_verset = v5.id_verset + 2 where v5.ID_traducere=5 and v5.id_carte = $ID_carte and v5.capitol= $capitol" ;		
+					}
+					else if($ID_carte==4 && $capitol==30) {
+						$sql = "Update bbl_verset v5 set v5.id_verset = v5.id_verset + 1 where v5.ID_traducere=5 and v5.id_carte = $ID_carte and v5.capitol= $capitol" ;		
+					    db_query($sql);
+					}
+					else {
+						$sql = "Update bbl_verset v5 set v5.id_verset = (select v2.id_verset  from bbl_verset2 v2 where v2.id_carte=v5.id_carte and v2.capitol=v5.capitol and v2.nr_verset = v5.nr_verset)
+	                            where v5.ID_traducere=5 and v5.id_carte = $ID_carte and v5.capitol= $capitol and v5.nr_verset in (select v3.nr_verset from bbl_verset2 v3 where v3.id_carte=$ID_carte and v3.capitol=$capitol )" ;
+						db_query($sql);
+					}
+					
+				}
+			}
+		}
+	}
+
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function biblia_init() {
+
+  drupal_add_css(drupal_get_path('module', 'biblia') .'/css/biblia.css');
+  drupal_add_js(drupal_get_path('module', 'biblia') .'/js/biblia.js');
+
+  drupal_add_css(drupal_get_path('module', 'biblia') .'/css/jquery.qtip.min.css');
+  drupal_add_js(drupal_get_path('module', 'biblia') .'/js/jquery.qtip.min.js');
+  
+  if(strpos($_SERVER['HTTP_HOST'], 'localhost') !== FALSE) {
+  	$path_tmp = variable_get('file_temporary_path' , '');
+  	if(strpos($path_tmp, 'wamp') === FALSE) {
+  		 variable_set('file_temporary_path', 'C:\wamp\tmp');
+  		 variable_set('file_public_path', 'sites/default/files');
+  	}
+  }
+  else if(strpos($_SERVER['HTTP_HOST'], 'dinvi') !== FALSE) {
+  	 $path_tmp = variable_get('file_temporary_path' , '');
+	  if(strpos($path_tmp, 'home') === FALSE) {
+	  		 variable_set('file_temporary_path', '/home/wwwdinvi/tmp');  
+	  		 variable_set('file_public_path', 'sites/biblia.dinviselemele.ro/files');
+	  }
+  }
+  //$xmlstr = file_get_contents("tablou_xx.xml");
+  //$xmlcont = new SimpleXMLElement($xmlstr);
+  //biblia_process_versete(); 
+//  
+//  $max_page = 189;
+//  $max_av = 2251;
+//  $output = file_get_contents("tablou_0.txt");
+//  for($i = 3; $i<=$max_page; $i++){
+//  	$out = str_replace("\r\n" . $i . "\r\n", " ", $output);
+//  	$output = $out;
+//  }
+//  file_put_contents("tablou_x2.txt", $output);
+//  
+//    $sql = "select * from avu_replace " ;
+//    $text_replace = Array();
+//	$result = db_query($sql);
+//	foreach ($result as $record) {
+//		$text_replace[] = Array('txt_search' => $record->repl_from, 'txt_replace' => $record->repl_to, 'id' => $record->doar_judet);
+//	}
+//	
+//  $delims = Array("-");
+//  //copy("tablou_0.txt", "tablou_x.txt");
+//  file_put_contents("tablou_x.txt", "\xEF\xBB\xBF" . "NR|INITIALA|NUME|FEL|BAROU|ID_JUDET|DE LA|SUSPENDAT|CONCLUZII|UE|DESCRIERE\r\n");
+//  $pos0 = strpos($output, "1.");
+//  for($i = 2; $i<=($max_av+1); $i++){
+//  	if($i == 94) {
+//  		echo "stop";
+//  	}
+//  	
+//  	//$pos2 = strpos($output, "SEDIUL", $pos0);
+//  	$pos1 = strpos($output, "$i" . ". ");
+//  	if($i == ($max_av + 1)) {
+//  		$str_line = substr($output, $pos0 );
+//  	}
+//  	else {
+//  		$str_line = substr($output, $pos0 , $pos1-$pos0);
+//  	}
+//  	$out = substr($output, $pos1);
+//  	$output=$out;
+//  	$pos0 = 0;
+//  	
+//  	$out = str_replace("\r\n", "", $str_line);
+//  	foreach ($text_replace as $value) {
+//  		$str_line = str_replace($value['txt_search'], $value['txt_replace'], $out);
+//  		$out = $str_line;
+//  	}
+//  	$str_line = $out;
+//  	$nr_crt = intval($str_line);
+//  	
+//  	$pos2 = strpos($str_line, ".");
+//  	$pos3 = strpos($str_line, "AVOCAT");
+//  	$nume = substr($str_line, $pos2 + 1 , $pos3-$pos2-1);
+//  	$full_descr = substr($str_line, $pos3 );
+//  	
+//  	foreach($delims as $delim) {
+//	  	if( ($pos4 = strrpos($nume, $delim)) !== FALSE ) {
+//	  		break;
+//	  	}
+//  	}
+//  	if($pos4 == FALSE) {
+//  		if(count($delims) == 1) {
+//  			$deli = trim(substr($nume, strlen($nume)-4));
+//	  		$delims[] = $deli;
+//	  		$delims[] = ",";
+//	  		$pos4 = strrpos($nume, $deli);
+//  		}
+//  	}
+//  	$out = substr($nume, 0, $pos4) ;
+//	$nume = trim($out);
+//	$initiala = substr($nume, 0, 1);
+//  	
+//  	$tipavocat = "DEFINITIV"; 
+//  	if(strpos($full_descr,"STAGIAR") !== FALSE) {
+//  		$tipavocat = "STAGIAR"; 
+//  	}
+//  	$pos2 = strpos($full_descr, "BAROUL");
+//  	$pos3 = strpos($full_descr, "LA DATA DE");
+//  	if($pos3 === FALSE) {
+//  		$pos3 = strpos($full_descr, "LA DATA");
+//  		$deladata = trim(substr($full_descr, $pos3 + 7 , 11));
+//  	} 
+//  	else {
+//  		$deladata = trim(substr($full_descr, $pos3 + 10 , 11));
+//  	}
+//  	$baroul = trim(substr($full_descr, $pos2 + 6 , $pos3-$pos2-6));
+//  	$id_barou = 0;
+//    foreach ($text_replace as $value) {
+//    	if($baroul == $value['txt_replace']) {
+//    		$id_barou = $value['id'];
+//    		break;
+//    	}
+//  	}
+//  	
+//  	$pos2 = strpos($full_descr, "SUSPEND");
+//  	$suspendat = "";
+//    if($pos2 !== FALSE ) {
+//  		$suspendat = "SUSPENDAT";
+//  	}
+//  	$pos2 = strpos($full_descr, "CONCLUZII");
+//  	$concluzii = Array();
+//    if($pos2 !== FALSE ) {
+//  		$pos3 = strpos($full_descr, "JUDEC");
+//  		if($pos3 !== FALSE ) {
+//  			$concluzii[] = "JUDECATORII";
+//  		}
+//  		$pos3 = strpos($full_descr, "TRIBUNAL");
+//  		if($pos3 !== FALSE ) {
+//  			$concluzii[] = "TRIBUNALE";
+//  		}
+//  		$pos3 = strpos($full_descr, "APEL");
+//  		if($pos3 !== FALSE ) {
+//  			$concluzii[] = "CURTI DE APEL";
+//  		}
+//    }
+//    
+//  	$pos2 = strpos($full_descr, "EUROPENE");
+//  	$UE = "";
+//    if($pos2 !== FALSE ) {
+//  		$UE = "UE";
+//  	}
+//  	$out2 = "$nr_crt|$initiala|$nume|$tipavocat|$baroul|$id_barou|$deladata|$suspendat|" . implode(",",$concluzii) . "|$UE|$full_descr \r\n";
+//  	file_put_contents("tablou_x.txt", $out2, FILE_APPEND );
+//  }
+//  
+}
+
+  
+/**
+ * Implementation of hook_menu().
+ */
+function biblia_menu() {
+  global $user;
+
+  $items['process_stat'] = array(
+    'title' => 'Process Status',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'biblia_process_status',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+  );
+  $items['get_verset'] = array(
+    'title' => 'Get Verset',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'biblia_get_verset',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+  );
+  $items['biblia'] = array(
+    'title' => 'Biblia',
+    'description' => 'Biblia',
+    'page callback' => 'biblia_menu_redir',
+    'page arguments' => array(2),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+	$sql = "select * from _bbl_carte where ID_traducere = 6 " ;
+	$result = db_query($sql);
+	foreach ($result as $record) {
+	  $crt99 = sprintf('%02d', $record->nr_order);
+	  $crti99 = sprintf('%02d', $record->ID_carte);
+	  $items['biblia/' . $crti99] = array(
+	    'title' => $crt99 . ' ' . $record->trimitere_titlu,
+	    'description' => $record->trimitere_titlu,
+	    'page callback' => 'biblia_menu_redir',
+	    'page arguments' => array(2),
+	    'access callback' => 'user_access',
+	    'access arguments' => array('access content'),
+	    'type' => MENU_NORMAL_ITEM,
+	  );
+	  $capStart = 1;
+	  if($record->ID_carte == 74) $capStart = 0;
+	  for($capitol = $capStart; $capitol <= $record->capitole; $capitol++) { 
+		  $cap999 = sprintf('%03d', $capitol);
+		  $items['biblia/' . $crti99 . '/' . $cap999] = array(
+		    'title' => 'Capitolul ' . $cap999,
+		    'description' => $record->trimitere_titlu . ' Capitolul ' . $capitol,
+		    'page callback' => 'biblia_menu_redir',
+		    'page arguments' => array(2),
+		    'access callback' => 'user_access',
+		    'access arguments' => array('access content'),
+		    'type' => MENU_NORMAL_ITEM,
+		  );
+	  }
+    }
+  
+  return $items;
+}
+
+function biblia_menu_redir() {
+	$path = explode('/' , $_GET['q']);
+	
+	if(count($path) == 1)
+	   drupal_goto('traduceri/6/2');
+    else if(count($path) == 2)
+	   drupal_goto('trimiteri/6/2/' . intval($path[1]) . '/1');
+	else if(count($path) == 3)
+	   drupal_goto('trimiteri/6/2/' . intval($path[1]) . '/' . intval($path[2]));
+}
+
+function biblia_process_status() {
+  $output = array('ook',1);
+  drupal_json_output($output);
+  exit;
+}
+
+function biblia_get_verset($ar) {
+  $args = explode("/", $_GET['q']);
+  $output = Array();
+  foreach($args as $id => $arg) {
+ 	  if($id == 0) 
+  	  	continue;
+  	  $params = explode("_" , $arg);
+	  $ver_text = '';
+	  $ver_link = '';
+	  $text = NULL;
+	  
+	  $link = biblia_get_link_trimitere(intval($params[0]), intval($params[1]), intval($params[3]), intval($params[4]), intval($params[5]), $text, $ver_text, $ver_link);
+  	  $output[] = array($link, $ver_text, $ver_link, $text, $params[2] . "_" . $params[3] . "_" . $params[4] . "_" . $params[5]);
+  
+  }
+  drupal_json_output($output);
+  exit;
+}

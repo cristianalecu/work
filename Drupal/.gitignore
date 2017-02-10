@@ -18,10 +18,22 @@ drupal7/sites/all/modules/*
 drupal7/sites/all/themes/*
 
 
+!drupal7/sites/all/modules/_thiswebsite
+!drupal7/sites/all/modules/_thiswebsite/*
+!drupal7/sites/all/modules/biblia
+!drupal7/sites/all/modules/biblia/*
+!drupal7/sites/all/modules/copiii
+!drupal7/sites/all/modules/copiii/*
+!drupal7/sites/all/modules/financial_statement
+!drupal7/sites/all/modules/financial_statement/*
 !drupal7/sites/all/modules/game_war
 !drupal7/sites/all/modules/game_war/*
 !drupal7/sites/all/modules/gestiune
 !drupal7/sites/all/modules/gestiune/*
+!drupal7/sites/all/modules/objective_planning
+!drupal7/sites/all/modules/objective_planning/*
+!drupal7/sites/all/modules/planning_books_to_read
+!drupal7/sites/all/modules/planning_books_to_read/*
 
 !drupal7/sites/all/themes/game_war
 !drupal7/sites/all/themes/game_war/*

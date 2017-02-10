@@ -1,0 +1,1022 @@
+<?php
+/**
+ * @file
+ */
+
+// Drupal needs this blank file.
+
+include_once('_thiswebsite.features.inc');
+
+/**
+ * Implementation of hook_init().
+ */
+function _thiswebsite_init() {
+global $user;
+
+  drupal_add_css(drupal_get_path('module', '_thiswebsite') .'/css/_thiswebsite.css');
+  drupal_add_js(drupal_get_path('module', '_thiswebsite') .'/js/_thiswebsite.js');
+  if(isset($user->roles[7]) && !isset($user->roles[11]) && $user->uid!=1) {  //firma de contabilitate   si mail validat
+    $sql = "SELECT nid FROM {node} WHERE type='oferta' and uid=" . $user->uid ;
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		if(isset($record->nid)) {
+			return;
+		}
+	}
+	drupal_set_message(t('Incepe prin a seta descrierea generala a cabinetului tau de contabilitate. Fie ca esti un PFA sau ai o firma de contabilitate Aici iti poti descrie viziunea ta fata de clientii de contabilitate si fata de contabilitate ca profesie. De asemenea poti sa iti adaugi calificarile obtinute in timp (autorizatii CECCAR, CAFR sau CCF)  fapt ce te va pozitiona ca un adevarat profesionist in domeniu. Experienta profesionala, numarul de salariati, serviciile oferite precum si un portofoliu de clienti existenti sunt atuuri ce vor atrage atenitia clientilor in cautare de servicii contabile. Aceasta prezentare genrala are rolul de a deterimina clientul sa va invite in cadrul unei sesiuni inchise de ofertare (numar restras de participanti alesi de client pe baza descrierii generale).'), 'status', FALSE);
+  }
+//  if(isset($user->roles[8]) && !isset($user->roles[11])) {  //client   si mail validat
+//    $sql = "SELECT nid FROM {node} WHERE type='anunt' and uid=" . $user->uid ;
+//	$result = db_query($sql);
+//	foreach ($result as $record) {
+//		if(isset($record->nid)) {
+//			return;
+//		}
+//	}
+//	drupal_set_message(t('Incepe prin a seta descrierea generala a cabinetului tau de contabilitate. Fie ca esti un PFA sau ai o firma de contabilitate Aici iti poti descrie viziunea ta fata de clientii de contabilitate si fata de contabilitate ca profesie. De asemenea poti sa iti adaugi calificarile obtinute in timp (autorizatii CECCAR, CAFR sau CCF)  fapt ce te va pozitiona ca un adevarat profesionist in domeniu. Experienta profesionala, numarul de salariati, serviciile oferite precum si un portofoliu de clienti existenti sunt atuuri ce vor atrage atenitia clientilor in cautare de servicii contabile. Aceasta prezentare genrala are rolul de a deterimina clientul sa va invite in cadrul unei sesiuni inchise de ofertare (numar restras de participanti alesi de client pe baza descrierii generale).'));
+//  }
+  
+  
+}
+
+function _thiswebsite_invited($row, $data, $view) {
+global $user;
+    $uid = $row->uid;
+    $nid = $row->nid;
+    if($user->uid == 1 )
+      return FALSE;
+
+    $sql = "SELECT fld.field_tip_licita_ie_value, n.uid FROM {field_data_field_tip_licita_ie} fld LEFT JOIN {flag_content} f on f.uid=$uid  LEFT JOIN {node} n on n.nid = f.content_id WHERE fld.entity_id=$nid";
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		if($record->field_tip_licita_ie_value == 0 ) { //deschisa
+			return FALSE;
+		}
+		else if (isset($record->uid) && $record->uid == $user->uid) {
+			return FALSE;
+		}
+	}
+	
+	return TRUE;
+}
+
+function _thiswebsite_is_invited_by_user($uid_invited, $uid_by_user) {
+    $sql = "SELECT f.uid byuser FROM {flag_content} f, {node} n WHERE f.fid=8 and f.uid=$uid_by_user and n.uid=$uid_invited and n.nid=f.content_id";
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		if(isset($record->byuser)) {
+			if($record->byuser == $uid_by_user) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function _thiswebsite_menu() {
+  $items = array();
+  $items['maintenance'] = array(
+    'title' => 'Maintenance',
+    'description' => 'Manage problems.',
+    'page callback' => '_thiswebsite_maintenance',
+    'page arguments' => array(),
+    'access callback' => 'user_access',
+    'access arguments' => array('access statistics'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['oferta'] = array(
+    'title' => 'Oferta generala',
+    'description' => 'Oferta generala',
+    'page callback' => '_thiswebsite_oferta',
+    'page arguments' => array(2),
+    'access callback' => '_thiswebsite_acces_ofert',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['anunt'] = array(
+    'title' => 'Anuntul meu',
+    'description' => 'Anuntul meu',
+    'page callback' => '_thiswebsite_anunt',
+    'page arguments' => array(2),
+    'access callback' => '_thiswebsite_acces_anunt',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['inlitascurta'] = array(
+    'title' => 'Lista Scurta',
+    'description' => 'Lista Scurta',
+    'page callback' => '_thiswebsite_add_lista_scurta',
+    'access callback' => '_thiswebsite_acces_anunt',
+    'type' => MENU_CALLBACK,
+  );
+  $items['viewcontacts'] = array(
+    'title' => 'Contacte',
+    'description' => 'Contacte',
+    'page callback' => '_thiswebsite_contacte',
+    'access callback' => '_thiswebsite_acces_anunt',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['alegeconta'] = array(
+    'title' => 'Alege Contabil',
+    'description' => 'Alege Contabil',
+    'page callback' => '_thiswebsite_alegeconta',
+    'access callback' => '_thiswebsite_acces_anunt',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  return $items;
+}
+
+function _thiswebsite_contacte($nid_oferta) {
+global $user;
+
+    if(!isset($user->date_conta))
+    	$user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());	
+    
+    if(isset($user->date_conta['oferte_primite'][$nid_oferta])) {
+    	$onode = node_load(intval($nid_oferta));
+    	$uuser = user_load($onode->uid);
+    	$ouser = profile2_load_by_user($onode->uid);
+    	
+    	$output = '';
+    	$output .= 'Descriere: ' . $ouser['main']->field_fullname[LANGUAGE_NONE][0]['value'] . '<br>';
+    	if(isset($ouser['main']->field_website[LANGUAGE_NONE][0]['value']))
+    		$output .= 'Website: ' . $ouser['main']->field_website[LANGUAGE_NONE][0]['value'] . '<br>';
+    	$output .= 'Telefon: ' .   $ouser['main']->field_telefon[LANGUAGE_NONE][0]['value'] . '<br>';
+    	$output .= 'Email: ' .   $uuser->mail . '<br>';
+    	$output .= 'Persoana de contact: ' . $ouser['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'] . '<br>';
+    	$term=taxonomy_term_load(intval($ouser['main']->field_localitate[LANGUAGE_NONE][0]['tid']));
+    	$output .= 'Localitate: ' . $term->name . '<br>';
+    	$output .= 'Adresa: ' . $ouser['main']->field_adresa[LANGUAGE_NONE][0]['value'] . '<br>';
+
+    	if( !isset($user->date_conta['contabil_ales']) ) {
+    		$output .= '<br><a id="alegeconta' . $nid_oferta . '" class="alegeconta" href="/alegeconta/' . $nid_oferta . '">' . t('Alege contabil') . '</a><br>';
+    	}
+    	
+    	return $output;
+    }
+    
+    drupal_goto('ofertele-primite');
+}
+
+function _thiswebsite_alegeconta($nid_oferta) {
+global $user;
+
+    if(!isset($user->date_conta))
+    	$user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());	
+    
+    if(isset($user->date_conta['oferte_primite'][$nid_oferta])) {
+    	//$onode = node_load(intval($nid_oferta)); 
+    	$user->date_conta['oferte_primite'][$nid_oferta]=2;
+    	$user->date_conta['contabil_ales'] = $nid_oferta;
+    	variable_set('user_' . $user->uid . '_date_conta', $user->date_conta);
+    	_thiswebsite_send_email_alegeconta($nid_oferta);
+    }
+    
+    drupal_goto('ofertele-primite');
+}
+
+function _thiswebsite_add_lista_scurta($nid_oferta) {
+global $user;
+
+    if(!isset($user->date_conta))
+    	$user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());
+    if(!isset($user->date_conta['oferte_primite'])) {
+    	$user->date_conta['oferte_primite'] = Array();
+    }
+    if(isset($user->date_conta['oferte_primite'][$nid_oferta])) {
+    	drupal_set_message(t('In lista scurta'));
+    }
+    else if(count($user->date_conta['oferte_primite']) >= 5) {
+    	drupal_set_message(t('Maxim @cntofer oferte in lista scurta', Array('cntofer' => 5)));
+    }
+    else {
+    	$user->date_conta['oferte_primite'][$nid_oferta] = 1; //Vezi contacte
+    	_thiswebsite_send_email_inlistascurta($nid_oferta);
+    	variable_set('user_' . $user->uid . '_date_conta', $user->date_conta);
+    }    	
+	
+	drupal_goto('ofertele-primite');
+
+}
+
+function _thiswebsite_vezi_contacte_val($view, $handler, &$static, $row, $data){
+global $user;
+
+    if(!isset($user->date_conta))
+    	$user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());
+    
+    if(isset($user->date_conta['oferte_primite'])) {
+    	if(isset($user->date_conta['contabil_ales'])) {
+    		if( $user->date_conta['contabil_ales'] == $row->nid ) {
+    			return 3; // contabil ales
+    		}
+    	    else if(isset($user->date_conta['oferte_primite'][$row->nid])) {
+    			return 2;  //view details
+    		}    
+    		else {
+    			return 0;
+    		}	
+    	}
+    	else if(isset($user->date_conta['oferte_primite'][$row->nid])) {
+    		return 2;  //view details
+    	}
+    	else if(count($user->date_conta['oferte_primite']) >= 5) {
+    		return 0;
+    	}
+    	else {
+    		return 1;  //add to lista scurta
+    	}
+    }
+    
+    return 0;
+}
+
+function _thiswebsite_vezi_contacte_out($view, $handler, &$static, $row, $data){
+global $user;
+
+    if(!isset($user->date_conta))
+    	$user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());
+    
+    if(isset($user->date_conta['oferte_primite'])) {
+	    if(isset($user->date_conta['contabil_ales'])) {
+	    	if( $user->date_conta['contabil_ales'] == $row->nid) {
+		    	//view details
+		    	return '<a id="viewconta' . $row->nid . '" class="vezicontact" href="/viewcontacts/' . $row->nid . '">' . t('Vezi contabil ales') . '</a>';
+	    	}
+	    	else if( isset($user->date_conta['oferte_primite'][$row->nid])) {
+		    	//view details
+		    	return '<a id="viewconta' . $row->nid . '" class="vezicontact" href="/viewcontacts/' . $row->nid . '">' . t('Vezi contacte') . '</a>';
+	    	}
+	    	else {
+	    		return '';
+	    	}
+	    }
+    	else if(isset($user->date_conta['oferte_primite'][$row->nid])) {
+	    	//view details
+	    	return '<a id="viewconta' . $row->nid . '" class="vezicontact" href="/viewcontacts/' . $row->nid . '">' . t('Vezi contacte') . '</a>';
+	    }
+    	else if(count($user->date_conta['oferte_primite']) >= 5) {
+	    	return '';
+	    }
+	    else {
+	    	//add to lista scurta
+	    	return '<a id="inlitascurta' . $row->nid . '" class="inlitascurta" href="/inlitascurta/' . $row->nid . '">' . t('Adauga in lista scurta') . '</a>';
+	    }	
+    }
+    else {
+    	//add to lista scurta
+	   return '<a id="inlitascurta' . $row->nid . '" class="inlitascurta" href="/inlitascurta/' . $row->nid . '">' . t('Adauga in lista scurta') . '</a>';
+    }
+    
+    return '';
+}
+
+function _thiswebsite_maintenance() {
+	$output = '';
+
+    return $output;
+}
+
+function _thiswebsite_oferta($uid) {
+global $user;
+    $sql = "SELECT nid FROM {node} WHERE type='oferta' and uid=" . $user->uid ;
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		if(isset($record->nid)) {
+			drupal_goto('node/' . $record->nid . '/edit');
+		}
+	}
+	drupal_goto('node/add/oferta');
+}
+
+function _thiswebsite_acces_ofert() {
+global $user;
+    if($user->uid == 1)
+      return TRUE;
+    if(isset($user->roles[7]))  //firma de contabilitate
+      return TRUE;
+      
+    return FALSE;
+}
+
+function _thiswebsite_anunt($uid) {
+global $user; 
+
+    if(isset($user->roles[11])) {    //email nevalidat
+    	drupal_goto('emailvalidation');
+    }
+    $sql = "SELECT nid FROM {node} WHERE type='anunt' and uid=" . $user->uid ;
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		if(isset($record->nid)) {
+			drupal_goto('node/' . $record->nid );
+		}
+	}
+	drupal_goto('node/add/anunt');
+	}
+
+function _thiswebsite_acces_anunt() {
+global $user;
+    if($user->uid == 1)
+      return TRUE;
+    if(isset($user->roles[8]))  //8 = client
+      return TRUE;
+      
+    return FALSE;
+}
+
+/**
+* Implements hook_form_FORM_ID_alter()
+*/
+function _thiswebsite_form_user_register_form_alter(&$form, &$form_state) { 
+global $user; 
+   $i = $user->uid;
+   $path = explode('/', $_GET['q']);
+   if(isset($path[2])) {
+   	 if($path[2] == 'client') {
+   	 	$form['profile_main']['field_tip_utilizator'][LANGUAGE_NONE]['#default_value'][0] = 1;
+   	 }
+   }
+   $form['#submit'][] = '_thiswebsite_register_submit';
+}
+
+function _thiswebsite_register_submit(&$form, &$form_state) { 
+global $user; 
+	//drupal_goto('user/logout');
+}
+
+/**
+* Implements hook_form_FORM_ID_alter()
+*/
+function _thiswebsite_form_oferta_node_form_alter(&$form, &$form_state) { 
+global $user; 
+
+    if($user->uid != 1 && !isset($user->roles[7])) //nu e firma de contabilitate
+      drupal_goto('bursa');
+	
+	if(isset($form['nid']['#value'])) {  //edit
+		
+	}
+	else { //add
+	    $sql = "SELECT nid FROM {node} WHERE type='oferta'  and uid=" . $user->uid ;
+		$result = db_query($sql);
+		foreach ($result as $record) {
+			if(isset($record->nid)) {
+				drupal_goto('node/' . $record->nid);
+			}
+		}
+	}
+	if(!isset($form['title']['#default_value'])) {
+	    $sql = "SELECT field_fullname_value FROM {field_data_field_fullname} n , {profile} p WHERE p.uid=" . $user->uid . " and p.pid=n.entity_id " ;
+		$result = db_query($sql);
+		foreach ($result as $record) {
+			if(isset($record->field_fullname_value)) {
+				$form['title']['#default_value'] = $record->field_fullname_value; 
+			}
+		}
+		if(strlen(trim($form['title']['#default_value'])) == 0) {
+			$form['title']['#default_value'] = 'Firma de contabilitate';
+			drupal_set_message('Completati denumirea in datele de contact');
+			drupal_goto('user/me/edit/main');
+		}
+	}
+}
+
+/**
+* Implements hook_form_FORM_ID_alter()
+*/
+function _thiswebsite_form_oferta_personalizat__node_form_alter(&$form, &$form_state) { 
+global $user; 
+    $are_oferta_generala = 0;
+    if($user->uid != 1 && !isset($user->roles[7])) //nu e firma de contabilitate
+      drupal_goto('bursa');
+	
+	if(isset($form['nid']['#value'])) {  //edit
+		
+	}
+	else { //add
+	    $sql = "SELECT nid FROM {node} WHERE type='oferta'  and uid=" . $user->uid ;
+		$result = db_query($sql);
+		foreach ($result as $record) {
+			if(isset($record->nid)) {
+				$are_oferta_generala = $record->nid;
+			}
+		}
+		if($are_oferta_generala == 0) {
+			drupal_goto('node/add/oferta');
+		}
+		$onode=node_load($are_oferta_generala);
+		$path = explode('/', $_GET['q']);
+		if(isset($path[3])) {
+			$form['field_pentru_anun_'][LANGUAGE_NONE]['#default_value'][0] = intval($path[3]);
+		}
+		$form['title']['#default_value'] = $onode->title;
+		if(isset( $onode->field_viziune_firm_[LANGUAGE_NONE][0]['value']))
+			$form['field_viziune_firm_'][LANGUAGE_NONE][0]['value']['#default_value'] = $onode->field_viziune_firm_[LANGUAGE_NONE][0]['value'];
+//		if(isset($onode->field_misiunea[LANGUAGE_NONE][0]['value']))
+//			$form['field_misiunea'][LANGUAGE_NONE][0]['#default_value'] = $onode->field_misiunea[LANGUAGE_NONE][0]['value'];
+		if(isset($onode->field_experien_profesional_[LANGUAGE_NONE][0]['value'])) {
+			$form['field_experien_profesional_'][LANGUAGE_NONE][0]['value']['#default_value'] = $onode->field_experien_profesional_[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_num_r_de_angaja_i2[LANGUAGE_NONE][0]['value'])) {
+			$form['field_num_r_de_angaja_i2'][LANGUAGE_NONE][0]['value']['#default_value'] = $onode->field_num_r_de_angaja_i2[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_certificare_cecar[LANGUAGE_NONE][0])) {
+			$form['field_certificare_cecar'][LANGUAGE_NONE][0]['#default_value'] =  $onode->field_certificare_cecar[LANGUAGE_NONE][0];
+		}
+		if(isset($onode->field_certificare_cafr[LANGUAGE_NONE][0])) {
+			$form['field_certificare_cafr'][LANGUAGE_NONE][0]['#default_value'] =  $onode->field_certificare_cafr[LANGUAGE_NONE][0];
+		}
+		if(isset($onode->field_certificare_ccf[LANGUAGE_NONE][0])) {
+			$form['field_certificare_ccf'][LANGUAGE_NONE][0]['#default_value'] =  $onode->field_certificare_ccf[LANGUAGE_NONE][0];
+		}
+		if(isset($onode->field_certificare_cecar[LANGUAGE_NONE][0])) {
+			$form['field_certificare_cecar'][LANGUAGE_NONE][0]['#default_value'] =  $onode->field_certificare_cecar[LANGUAGE_NONE][0];
+		}
+		if(isset($onode->field_nume_ref1[LANGUAGE_NONE][0]['value'])) {
+			$form['field_nume_ref1'][LANGUAGE_NONE][0]['value']['#default_value'] =  $onode->field_nume_ref1[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_nume_ref2[LANGUAGE_NONE][0]['value'])) {
+			$form['field_nume_ref2'][LANGUAGE_NONE][0]['value']['#default_value'] =  $onode->field_nume_ref2[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_nume_ref3[LANGUAGE_NONE][0]['value'])) {
+			$form['field_nume_ref3'][LANGUAGE_NONE][0]['value']['#default_value'] =  $onode->field_nume_ref3[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_nume_ref4[LANGUAGE_NONE][0]['value'])) {
+			$form['field_nume_ref4'][LANGUAGE_NONE][0]['value']['#default_value'] =  $onode->field_nume_ref4[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_nume_ref5[LANGUAGE_NONE][0]['value'])) {
+			$form['field_nume_ref5'][LANGUAGE_NONE][0]['value']['#default_value'] =  $onode->field_nume_ref5[LANGUAGE_NONE][0]['value'];
+		}
+
+		if(isset($onode->field_complet_include_contabilit[LANGUAGE_NONE][0]['value'])) {
+			$form['field_complet_include_contabilit'][LANGUAGE_NONE]['#default_value'] =  $onode->field_complet_include_contabilit[LANGUAGE_NONE][0]['value'];
+		}
+		if(isset($onode->field_servicii_de_resurse_umane[LANGUAGE_NONE])) {
+			$form['field_servicii_de_resurse_umane'][LANGUAGE_NONE]['#default_value'] = Array();
+			foreach($onode->field_servicii_de_resurse_umane[LANGUAGE_NONE] as $key => $value) {
+				$form['field_servicii_de_resurse_umane'][LANGUAGE_NONE]['#default_value'][$key] = $value['value'];
+			};
+		}
+		if(isset($onode->field_salarizare[LANGUAGE_NONE])) {
+			$form['field_salarizare'][LANGUAGE_NONE]['#default_value'] = Array();
+			foreach($onode->field_salarizare[LANGUAGE_NONE] as $key => $value) {
+				$form['field_salarizare'][LANGUAGE_NONE]['#default_value'][$key] = $value['value'];
+			};
+		}
+		if(isset($onode->field_intocmire_bilant[LANGUAGE_NONE])) {
+			$form['field_intocmire_bilant'][LANGUAGE_NONE]['#default_value'] = Array();
+			foreach($onode->field_intocmire_bilant[LANGUAGE_NONE] as $key => $value) {
+				$form['field_intocmire_bilant'][LANGUAGE_NONE]['#default_value'][$key] = $value['value'];
+			};
+		}
+		if(isset($onode->field__ntocmire_declara_ii[LANGUAGE_NONE])) {
+			$form['field_servicii_de_resurse_umane'][LANGUAGE_NONE]['#default_value'] = Array();
+			foreach($onode->field_servicii_de_resurse_umane[LANGUAGE_NONE] as $key => $value) {
+				$form['field_servicii_de_resurse_umane'][LANGUAGE_NONE]['#default_value'][$key] = $value['value'];
+			};
+		}
+	}
+	$form['#validate'][] = '_thiswebsite_form_oferta_personalizat__node_form_validate';
+}
+
+function _thiswebsite_form_oferta_personalizat__node_form_validate(&$form, &$form_state) {
+global $user;
+  if($form_state['clicked_button']['#value'] == 'Delete') {
+  	return;
+  }
+
+  if( strlen(trim($form_state['values']['field_nume_ref1'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_persoana_ref1'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_telefon_ref1'][LANGUAGE_NONE][0]['value'])) > 0 ) {
+       
+     if(strlen(trim($form_state['values']['field_nume_ref1'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_nume_ref1', t('Referinta @Nr incompleta. Completati Nume firma de la referinta @Nr.', array('@Nr' => 1, '@Nr' => 1)));
+     }
+     if(strlen(trim($form_state['values']['field_persoana_ref1'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_persoana_ref1', t('Referinta @Nr incompleta. Completati Persoana de contact de la referinta @Nr.', array('@Nr' => 1, '@Nr' => 1)));
+     }
+     if(strlen(trim($form_state['values']['field_telefon_ref1'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_telefon_ref1', t('Referinta @Nr incompleta. Completati Telefonul de la referinta @Nr.', array('@Nr' => 1, '@Nr' => 1)));
+     }
+  }
+  if( strlen(trim($form_state['values']['field_nume_ref2'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_persoana_ref2'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_telefon_ref2'][LANGUAGE_NONE][0]['value'])) > 0 ) {
+       
+     if(strlen(trim($form_state['values']['field_nume_ref2'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_nume_ref2', t('Referinta @Nr incompleta. Completati Nume firma de la referinta @Nr.', array('@Nr' => 2, '@Nr' => 2)));
+     }
+     if(strlen(trim($form_state['values']['field_persoana_ref2'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_persoana_ref2', t('Referinta @Nr incompleta. Completati Persoana de contact de la referinta @Nr.', array('@Nr' => 2, '@Nr' => 2)));
+     }
+     if(strlen(trim($form_state['values']['field_telefon_ref2'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_telefon_ref2', t('Referinta @Nr incompleta. Completati Telefonul de la referinta @Nr.', array('@Nr' => 2, '@Nr' => 2)));
+     }
+  }
+  if( strlen(trim($form_state['values']['field_nume_ref3'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_persoana_ref3'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_telefon_ref3'][LANGUAGE_NONE][0]['value'])) > 0 ) {
+       
+     if(strlen(trim($form_state['values']['field_nume_ref3'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_nume_ref3', t('Referinta @Nr incompleta. Completati Nume firma de la referinta @Nr.', array('@Nr' => 3, '@Nr' => 3)));
+     }
+     if(strlen(trim($form_state['values']['field_persoana_ref3'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_persoana_ref3', t('Referinta @Nr incompleta. Completati Persoana de contact de la referinta @Nr.', array('@Nr' => 3, '@Nr' => 3)));
+     }
+     if(strlen(trim($form_state['values']['field_telefon_ref3'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_telefon_ref3', t('Referinta @Nr incompleta. Completati Telefonul de la referinta @Nr.', array('@Nr' => 3, '@Nr' => 3)));
+     }
+  }
+  if( strlen(trim($form_state['values']['field_nume_ref4'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_persoana_ref4'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_telefon_ref4'][LANGUAGE_NONE][0]['value'])) > 0 ) {
+       
+     if(strlen(trim($form_state['values']['field_nume_ref4'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_nume_ref4', t('Referinta @Nr incompleta. Completati Nume firma de la referinta @Nr.', array('@Nr' => 4, '@Nr' => 4)));
+     }
+     if(strlen(trim($form_state['values']['field_persoana_ref4'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_persoana_ref4', t('Referinta @Nr incompleta. Completati Persoana de contact de la referinta @Nr.', array('@Nr' => 4, '@Nr' => 4)));
+     }
+     if(strlen(trim($form_state['values']['field_telefon_ref4'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_telefon_ref4', t('Referinta @Nr incompleta. Completati Telefonul de la referinta @Nr.', array('@Nr' => 4, '@Nr' => 4)));
+     }
+  }
+  if( strlen(trim($form_state['values']['field_nume_ref5'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_persoana_ref5'][LANGUAGE_NONE][0]['value']))+
+       strlen(trim($form_state['values']['field_telefon_ref5'][LANGUAGE_NONE][0]['value'])) > 0 ) {
+       
+     if(strlen(trim($form_state['values']['field_nume_ref5'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_nume_ref5', t('Referinta @Nr incompleta. Completati Nume firma de la referinta @Nr.', array('@Nr' => 5, '@Nr' => 5)));
+     }
+     if(strlen(trim($form_state['values']['field_persoana_ref5'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_persoana_ref5', t('Referinta @Nr incompleta. Completati Persoana de contact de la referinta @Nr.', array('@Nr' => 5, '@Nr' => 5)));
+     }
+     if(strlen(trim($form_state['values']['field_telefon_ref5'][LANGUAGE_NONE][0]['value'])) == 0) {
+     	form_set_error('field_telefon_ref5', t('Referinta @Nr incompleta. Completati Telefonul de la referinta @Nr.', array('@Nr' => 5, '@Nr' => 5)));
+     }
+  }
+  
+  $uid=$user->uid;
+	
+}
+
+function _thiswebsite_form_user_profile_form_alter(&$form, &$form_state) { 
+global $user; 
+    if(isset($form['profile_main']['field_tip_utilizator'][LANGUAGE_NONE])) { 
+    	if(isset($user->roles[8]))
+    	    //client
+    		$form['profile_main']['field_tip_utilizator'][LANGUAGE_NONE]['#default_value'][0] = 1;
+    	else
+    		$form['profile_main']['field_tip_utilizator'][LANGUAGE_NONE]['#default_value'][0] = 0;
+    }
+ 
+
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function _thiswebsite_node_insert($node) {
+  _thiswebsite_node_save($node);
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function _thiswebsite_node_update($node) {
+  _thiswebsite_node_save($node);
+}
+
+function _thiswebsite_can_offer_value($nid){
+global $user;
+      if(!isset($node)) {
+      	$node = node_load(intval($nid)); 
+      }
+      
+      if($node->type != 'anunt' || !isset($user->roles[7]) || $node->created < strtotime('today - 7 days')) {
+      	return 0;
+      }
+
+      $can_offer = 0;
+	  if($node->field_tip_licita_ie[LANGUAGE_NONE][0]['value'] == 0) { //deschisa
+	  	$can_offer = 1;
+	  }
+	  else { //licitatie inchisa
+	  	if(_thiswebsite_is_invited_by_user($user->uid, $node->uid)) {
+	  		$can_offer = 1;
+	  	}
+	  }
+
+	  if($can_offer == 0) {
+	  	return 0;
+	  }
+	  else {
+	  	  $sql = "SELECT entity_id FROM {field_data_field_pentru_anun_} f,  {node} n  WHERE field_pentru_anun__nid=" . $nid . " and n.nid=f.entity_id and n.uid=" . $user->uid;
+		  $result = db_query($sql);
+		  foreach ($result as $record) {
+		  	if(isset($record->entity_id)) {
+		  		return $record->entity_id;
+		  	}
+		  }
+		  return -1;
+	  }
+}
+
+function _thiswebsite_can_offer_out($view, $handler, &$static, $row, $data, $value){
+global $user;
+	if($value == 0) { 
+		return '';
+	} 
+	else if($value == -1) {
+      	return '<a id="trimiteoferta' . $row->nid . '" class="trimiteoferta" href="/node/add/oferta-personalizat-/' . $row->nid . '">' . t('Trimite oferta personalizata') . '</a>';
+      }
+      else  {
+      	return '<a id="vezioferta' . $row->nid . '" class="vezioferta" href="/node/' . $value . '">' . t('Vezi oferta trimisa') . '</a>';
+      }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function _thiswebsite_node_view($node) {
+global $user;
+  if($user->uid==1)
+     return;
+  if($node->type == 'anunt') {
+  	  drupal_goto('detaliianunt/' . $node->nid);
+  }
+  if($node->type == 'oferta') {
+  	  drupal_goto('detaliioferta/' . $node->nid);
+  }
+  if($node->type == 'oferta_personalizat_') {
+    drupal_goto('detaliiot/' . $node->nid);
+  }
+}
+
+function _thiswebsite_user_can_offer_anunt($node, $user) {
+	if($user->uid > 1 && $node->type == 'anunt' && isset($user->roles[7])) {
+		 if($node->field_tip_licita_ie[LANGUAGE_NONE][0]['value'] == 1) {
+		 	//licitatie deschisa
+		 	return TRUE;
+		 }
+		 
+	}
+	return FALSE;
+}
+
+
+/**
+ * Helper for hook_node_insert() and hook_node_update().
+ */
+function _thiswebsite_node_save($node) {
+global $user; 
+
+  if(!isset($user->date_conta)) 
+    $user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());	
+    
+  if($node->type == 'oferta') {
+  	$term = taxonomy_term_load(intval($node->field_tip_ofert_[LANGUAGE_NONE][0]['tid']));
+  	$node->title = $term->name;
+  }
+  if($node->type == 'oferta_personalizat_') {
+  	 $sql = "SELECT u.mail, u.uid, f.field_persoan_de_contact_value from {node} n, {users} u LEFT JOIN {profile} p on p.uid=u.uid LEFT JOIN {field_data_field_persoan_de_contact} f on p.pid=f.entity_id where n.nid=" . $node->field_pentru_anun_['und'][0]['nid'] . " and n.uid=u.uid  " ; // anunt
+	 $result = db_query($sql);
+	 foreach ($result as $record) {
+	 	$usr_dc = variable_get('user_' . $record->uid . '_date_conta', Array());
+	 	if(!isset($usr_dc['oferte'])) {
+	 		$usr_dc['oferte'] = Array();
+	 	}
+	    if(!isset($usr_dc['oferte'][$node->nid])) {
+	    	$onode = node_load(intval($node->field_pentru_anun_['und'][0]['nid']));
+	        $oactiv=array();
+    	    foreach($onode->field_obiect_de_activitate[LANGUAGE_NONE] as $trm) {
+    	  	  $term=taxonomy_term_load(intval($trm['tid']));
+    	  	  $oactiv[] = $term->name;
+    	    }	  	    
+    	    _thiswebsite_send_email_oferta($node, $record);
+	 		$usr_dc['oferte'][$node->nid] = Array('fromuser' => $user->uid, 'mailsent' => 1);
+	 		variable_set('user_' . $record->uid . '_date_conta',$usr_dc);
+	 		drupal_set_message(t("O oferta personalizata cu titlul " . $node->title . " a fost creata si transmisa catre firma de  <<obiect de activitate>> care a solicitat-o. Vei fi instiintat imediat daca oferta ta a trecut in lista scurta moment in care vi se vor transmite datele de contact."));
+	    }
+	 }
+  }
+  if($node->type == 'anunt') {
+  	drupal_set_message(t('Ai adaugat cu succes anuntul tau. Din acest moment anuntul nu mai poate fi modificat de catre tine pentru a putea asigura aceasi informatie tuturor ofertantilor.'));
+  	$term = taxonomy_term_load(intval($node->field_tip_anun_[LANGUAGE_NONE][0]['tid']));
+  	$node->title = $term->name;
+  	if(!isset($user->date_conta['anunturi'])) {
+		$user->date_conta['anunturi'] = Array();
+	}
+    $user->date_conta['anunturi'][0] = $node->nid;
+    $user->date_conta['anunturi'][$node->nid] = $node->nid;
+    
+    _thiswebsite_send_emails_anunt($node, $user);
+    $user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());	
+    
+  }
+  
+  // nu, e modificat in _thiswebsite_send_emails_...    variable_set('user_' . $user->uid . '_date_conta',$user->date_conta);	 
+}
+
+function _thiswebsite_send_emails_anunt($node, $usr = NULL) {
+	if(!isset($usr)) {
+		$usr= user_load($node->uid);
+	}
+	if(!isset($usr->date_conta)) 
+	    $usr->date_conta = variable_get('user_' . $usr->uid . '_date_conta', Array());	
+	    
+	$dt=$node->created; // strtotime($node->field_activare_de_la[LANGUAGE_NONE][0]['value']);
+    if(strtotime('today') <= $dt && $dt < strtotime('today + 7 days')) {
+	    if(!isset($usr->date_conta['emails'])) {
+	      $usr->date_conta['emails'] = Array();
+	    }
+	    if($node->field_tip_licita_ie[LANGUAGE_NONE][0]['value'] == 0) { //deschisa
+	        $sql = "SELECT u.mail, u.uid, f.field_persoan_de_contact_value FROM {users_roles} r, {users} u LEFT JOIN {profile} p on p.uid=u.uid LEFT JOIN {field_data_field_persoan_de_contact} f on p.pid=f.entity_id  WHERE r.rid=7 and r.uid=u.uid";
+			$result = db_query($sql);
+			foreach ($result as $record) {
+			  if(!isset($usr->date_conta['emails'][$record->mail])) {
+				$params = Array('node' => $node, 'touser' => $record);
+				drupal_mail('_thiswebsite', 'anunt', $record->mail, language_default(),$params, TRUE);  
+				$usr->date_conta['emails'][$record->mail] = $record->mail;
+			  }
+			}
+	      } 
+	      else {  //inchisa
+	        $sql = "SELECT u.mail, u.uid, f.field_persoan_de_contact_value FROM {flag_content} flg, {node} n, {users} u LEFT JOIN {profile} p on p.uid=u.uid LEFT JOIN {field_data_field_persoan_de_contact} f on p.pid=f.entity_id WHERE flg.uid=" . $usr->uid . " and flg.content_id=n.nid and n.uid=u.uid";
+			$result = db_query($sql);
+			foreach ($result as $record) {
+			  if(!isset($usr->date_conta['emails'][$record->mail])) {
+				$params = Array('node' => $node, 'touser' => $record);
+				drupal_mail('_thiswebsite', 'anunt', $record->mail, language_default(),$params, TRUE);  
+				$usr->date_conta['emails'][$record->mail] = $record->mail;
+			  }
+			}
+	      }
+	      variable_set('user_' . $usr->uid . '_date_conta',$usr->date_conta); 
+    }
+}
+
+function _thiswebsite_send_email_invitatie($node, $fusr = NULL) {
+global $user;
+	if(!isset($fusr)) {
+		$fusr= $user;
+	}
+	$usr = user_load($node->uid);
+	if(!isset($fusr->date_conta)) 
+	    $fusr->date_conta = variable_get('user_' . $fusr->uid . '_date_conta', Array());	
+    if(!isset($fusr->date_conta['invita'])) {
+      $fusr->date_conta['invita'] = Array();
+    }
+    //if(!isset($fusr->date_conta['invita'][$usr->mail])) 
+    {
+    	$byuser = profile2_load_by_user($fusr->uid);
+    	$touser = profile2_load_by_user($usr->uid);
+    	
+	    $sql = "SELECT nid FROM {node} WHERE type='anunt' and uid=" . $fusr->uid ;
+		$result = db_query($sql);
+		foreach ($result as $record) {
+			if(isset($record->nid)) {
+				$node = node_load($record->nid);
+			}
+		}
+    	
+    	$fusr->date_conta['invita'][$usr->mail] = strtotime('today');
+    	$params = Array('node' => $node, 'byuser' => $byuser, 'touser'=>$touser);
+		drupal_mail('_thiswebsite', 'invita', $usr->mail, language_default(),$params, TRUE);  
+		variable_set('user_' . $fusr->uid . '_date_conta',$fusr->date_conta); 
+    }
+}
+
+function _thiswebsite_send_email_oferta($node, $fusr_record = NULL) {
+global $user;
+	  	    $params = Array('node' => $node, 'fromuser' => $fusr_record);
+	  	    drupal_mail('_thiswebsite', 'oferta', $fusr_record->mail, language_default(),$params, TRUE);  
+}
+
+function _thiswebsite_send_email_inlistascurta($nid_oferta) {
+global $user;
+   $onode = node_load(intval($nid_oferta)); 
+   $o_user = user_load($onode->uid);
+   $touser = profile2_load_by_user($o_user->uid);
+   $params = Array('node' => $onode, 'fromuser' => $user, 'touser' => $touser);
+   drupal_mail('_thiswebsite', 'inlistascurta', $o_user->mail, language_default(),$params, TRUE);  
+}
+
+
+function _thiswebsite_send_email_alegeconta($nid_oferta) {
+global $user;
+   $onode = node_load(intval($nid_oferta)); 
+   $o_user = user_load($onode->uid);
+   $touser = profile2_load_by_user($o_user->uid);
+   $fromuser = profile2_load_by_user($user->uid);
+   $params = Array('node' => $onode, 'fromuser' => $fromuser, 'touser' => $touser, 'email' => $user->mail);
+   drupal_mail('_thiswebsite', 'alegeconta', $o_user->mail, language_default(),$params, TRUE); 
+}
+
+function _thiswebsite_mail($key, &$message, $params) {
+global $user;
+
+  if(!isset($user->date_conta)) 
+    $user->date_conta = variable_get('user_' . $user->uid . '_date_conta', Array());	
+    
+  switch($key) {
+    case 'anunt':
+		  $message['subject'] = t("A aparut un nou anunt de cautare contabil");
+		  $message['body'][] = t("Draga !username\n\nA aparut on nou anunt de la o persoana ca are nevoie de servicii contabile.\n\nVezi anuntul la adresa @url si trimite-i o oferta personalizata.\n\nMultumim.\n", 
+		            Array('!username' => $params['touser']->field_persoan_de_contact_value, '@url' => url('node/' . $params['node']->nid, Array('absolute' => TRUE))));
+    	break;
+    case 'oferta':
+		  $message['subject'] = t("A aparut o noua oferta de la o firma de contabilitate");
+		  $message['body'][] = t("Draga !username\n\nA aparut o noua oferta personalizata pentru tine, de la o firma de contabilitate.\n\nVezi oferta la adresa @url si vezi daca este acceptatbila.\n\nMultumim.\n" ,
+		            Array('!username' => $params['fromuser']->field_persoan_de_contact_value, '@url' => url('node/' . $params['node']->nid, Array('absolute' => TRUE))));
+		      	break;
+    case 'invita':
+    	  $oactiv=array();
+    	  foreach($params['node']->field_obiect_de_activitate[LANGUAGE_NONE] as $trm) {
+    	  	$term=taxonomy_term_load(intval($trm['tid']));
+    	  	$oactiv[] = $term->name;
+    	  }
+//		  $message['subject'] = t("Ai fost invitat de o firma de !obiecte_activitate sa ii faci o oferta", array('!obiecte_activitate' => ''));
+//		  $message['body'][] = t("Draga !username\n\nAi primit o invitatie de la !fromuser pentru a participa la o licitatie inchisa.\n\nMergi la lista de invitatii la @url pentru a-i trimite o oferta.\n\nMultumim.\n" ,
+//		            Array('!username' => $params['touser']['main']->field_fullname[LANGUAGE_NONE][0]['value'], '!fromuser' => $params['fromuser']['main']->field_fullname[LANGUAGE_NONE][0]['value'], '@url' => url('invitatii', Array('absolute' => TRUE))));
+		  $message['subject'] = t("Ai fost invitat de o firma de !obiecte_activitate sa ii faci o oferta", array('!obiecte_activitate' => implode(', ', $oactiv)));
+		  $message['body'][] = t("Draga !username\n\nAi primit o invitatie de la o firma de !obiecte_activitate  pentru a participa la o licitatie inchisa.\n\n 
+		    Faci parte dintr-un grup restrans de ofertanti si ai sanse mari de a semna cu un nou client.\n\n
+		    Mergi la lista de invitatii la @url pentru a-i trimite o oferta personalizata care sa il determine sa te selecteze in lista scurta acolo unde se vor dezvalui contactele pentru lamurirea ultimelor neclaritati si finalizarea tranzactiei.\n\n
+		    SUCCES!\n\n
+		    Echipa IaContabil.ro\n\n
+		    Mail: suport@iacontabil.ro\n
+		    Telefon: 074163700\n" ,
+		            Array('!username' => $params['touser']['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'], 
+		                  '!obiecte_activitate' => implode(', ', $oactiv), 
+		                  '@url' => url('invitatii', Array('absolute' => TRUE))));
+
+		    break;
+    case 'inlistascurta':
+    	  $onode = node_load(intval($params['node']->field_pentru_anun_['und'][0]['nid']));
+    	  $oactiv=array();
+    	  foreach($onode->field_obiect_de_activitate[LANGUAGE_NONE] as $trm) {
+    	  	$term=taxonomy_term_load(intval($trm['tid']));
+    	  	$oactiv[] = $term->name;
+    	  }
+		  $message['subject'] = t("Ai ajuns in lista scurta a unui client");
+		  $message['body'][] = t("Draga !username\n\nOferta depusa de tine catre firma de !obiecte_activitate (vezi oferta trimisa aici @url)a ajuns in lista scurta alaturi de inca cel mult 4 alte oferte. Sansele sa castigi contractul sunt mai mari acum. Pregateste discutia finala prin stabilirea beneficiilor pe care le are clientul daca te va alege pe tine. Fii pregatit pentru a face o propunere suplimentara de nerefuzat!\n\n
+		    SUCCES!\n\n
+		    Echipa IaContabil.ro\n\n
+		    Mail: suport@iacontabil.ro\n
+		    Telefon: 074163700\n" ,
+		            Array('!username' => $params['touser']['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'], 
+		                  '!obiecte_activitate' => implode(', ', $oactiv), 
+		                  '@url' => url('node/' . $params['node']->nid, Array('absolute' => TRUE))));
+
+		    break;
+    case 'alegeconta':
+    	  $onode = node_load(intval($params['node']->field_pentru_anun_['und'][0]['nid']));
+    	  $oactiv=array();
+    	  foreach($onode->field_obiect_de_activitate[LANGUAGE_NONE] as $trm) {
+    	  	$term=taxonomy_term_load(intval($trm['tid']));
+    	  	$oactiv[] = $term->name;
+    	  }
+    	  $term=taxonomy_term_load(intval($params['fromuser']['main']->field_localitate[LANGUAGE_NONE][0]['tid']));
+		  $message['subject'] = t("Ai fost ales contabilul sau personal de catre un client !!");
+		  $message['body'][] = t("Draga !username\n\nOferta depusa de tine catre firma de !obiecte_activitate (vezi oferta trimisa aici @url) a fost aleasa castigatoare!\n\n
+		    Iata datele de contact ale clientului tau:\n\n
+		    Denumire: !denumire\n
+		    Persoana de contact: !contact\n
+		    Telefon: !telefon\n
+		    Email: !email\n
+		    Localitate: !localitate\n
+		    Adresa: !adresa\n\n
+		    SUCCES!\n\n
+		    Echipa IaContabil.ro\n\n
+		    Mail: suport@iacontabil.ro\n
+		    Telefon: 074163700\n" ,
+		            Array('!username' => $params['touser']['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'], 
+		                  '!obiecte_activitate' => implode(', ', $oactiv), 
+		                  '@url' => url('node/' . $params['node']->nid, Array('absolute' => TRUE)),
+		                  '!denumire' => $params['fromuser']['main']->field_fullname[LANGUAGE_NONE][0]['value'],
+		                  '!contact' => $params['fromuser']['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'],
+		                  '!telefon' => $params['fromuser']['main']->field_telefon[LANGUAGE_NONE][0]['value'],
+		                  '!email' => $params['email'],
+		                  '!localitate' => $term->name,
+		                  '!adresa' => $params['fromuser']['main']->field_adresa[LANGUAGE_NONE][0]['value'],
+		                  ));
+		            
+		    break;
+   	case 'invite_all': 
+		    break;
+  }
+}
+
+/**
+ * Implement hook_mail_alter().
+ */
+function _thiswebsite_mail_alter(&$message) {
+global $user; 
+    if(isset($_POST['profile_main']['field_persoan_de_contact'][LANGUAGE_NONE][0]['value'])) {
+    	$p_contact = $_POST['profile_main']['field_persoan_de_contact'][LANGUAGE_NONE][0]['value'];
+    	//sau field_fullname
+    }
+    else {
+    	if($user->uid == 0) {
+    		 $ouser = user_load_by_mail($message['to']);
+    		 $user->name = $ouser->name;
+    		 $p_user = profile2_load_by_user($ouser->uid);  
+    	}
+    	else {   
+    	  $p_user = profile2_load_by_user($user->uid);
+    	}  
+    	if(isset($p_user['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'])) {
+    		$p_contact = $p_user['main']->field_persoan_de_contact[LANGUAGE_NONE][0]['value'];
+    	}
+    	else { 
+    		if(isset($user->name)) {
+	    		$p_contact = $user->name;
+    		}
+    		else { 
+	    		$p_contact = '';
+	    	}
+    		
+    	}
+    	
+    }
+
+    $message['body'][0] = str_replace('user_contact_person',$p_contact,$message['body'][0]);
+}
+/**
+ * Implements hook_node_presave().
+ */
+function _thiswebsite_node_presave($node) { 
+global $user;
+
+  if($node->type == 'oferta') {
+  	$term = taxonomy_term_load(intval($node->field_tip_ofert_[LANGUAGE_NONE][0]['tid']));
+  	$node->title = $term->name;
+  }
+  if($node->type == 'anunt') {
+  	$term = taxonomy_term_load(intval($node->field_tip_anun_[LANGUAGE_NONE][0]['tid']));
+  	$node->title = $term->name;
+  }
+  
+}
+
+
+/**
+* Implements hook_form_FORM_ID_alter()
+*/
+function _thiswebsite_form_anunt_node_form_alter(&$form, &$form_state) { 
+global $user; 
+
+    if($user->uid != 1 && !isset($user->roles[8])) //nu e client
+      drupal_goto('bursa');
+	
+	if(isset($form['nid']['#value'])) {  //edit
+		
+	}
+	else { //add
+	    $sql = "SELECT nid FROM {node} WHERE type='anunt'  and uid=" . $user->uid;
+		$result = db_query($sql);
+		foreach ($result as $record) {
+			if(isset($record->nid)) {
+				drupal_goto('node/' . $record->nid );
+			}
+		}
+	}
+    $sql = "SELECT field_fullname_value FROM {field_data_field_fullname} n , {profile} p WHERE p.uid=" . $user->uid . " and p.pid=n.entity_id " ;
+	$result = db_query($sql);
+	foreach ($result as $record) {
+		if(isset($record->field_fullname_value)) {
+			$form['title']['#default_value'] = $record->field_fullname_value;
+		}
+	}
+}
+
+function _thiswebsite_user_presave(&$edit, $account, $category) {
+global $user;
+	$i = $user->uid;
+	if($i > 0)
+	  return;
+	if($edit['profile_main']['field_tip_utilizator'][LANGUAGE_NONE][0]['value'] == '0') {
+    	$edit['roles'][7]=true;
+    }
+    else {
+    	$edit['roles'][8]=true;
+    }
+
+}
+
+
+
+/**
+ * Implements hook_flag(). Trigger actions if any are available.
+ */
+function _thiswebsite_flag($action, $flag, $content_id, $account, $fcid) {
+	if($flag='flag') {
+		$node = node_load($content_id);
+		_thiswebsite_send_email_invitatie($node, $account);
+	}
+}

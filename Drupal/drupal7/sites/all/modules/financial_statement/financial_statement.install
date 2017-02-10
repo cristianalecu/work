@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the financial_statement module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function financial_statement_schema() {
+  $schema = array();
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function financial_statement_install() {
+ financial_statement_update_7000();
+}
+
+/**
+ * Implements hook_uninstall()
+ */
+function financial_statement_uninstall() {
+
+}
+
+function financial_statement_update_7000() {
+   $voc = taxonomy_vocabulary_get_names(); 
+   $term = financial_statement_add_term($voc['incomes']->vid, 'Earned income');
+   financial_statement_add_term($voc['incomes']->vid, 'Employment', $term->tid);
+   financial_statement_add_term($voc['incomes']->vid, 'Extra services', $term->tid);
+   $term = financial_statement_add_term($voc['incomes']->vid, 'Passive income');
+   financial_statement_add_term($voc['incomes']->vid, 'Real Estate (NET)', $term->tid);
+   financial_statement_add_term($voc['incomes']->vid, 'Business (NET)', $term->tid);
+   financial_statement_add_term($voc['incomes']->vid, 'Interest', $term->tid);
+   financial_statement_add_term($voc['incomes']->vid, 'Dividents', $term->tid);
+   financial_statement_add_term($voc['incomes']->vid, 'Royalties', $term->tid);
+   financial_statement_add_term($voc['incomes']->vid, 'Product Selling', $term->tid);
+
+   $term = financial_statement_add_term($voc['expenses']->vid, 'Financial Freedom Account');
+   financial_statement_add_term($voc['expenses']->vid, 'Investment', $term->tid);
+   $term = financial_statement_add_term($voc['expenses']->vid, 'Education');
+   $term = financial_statement_add_term($voc['expenses']->vid, 'Long term savings');
+   $term = financial_statement_add_term($voc['expenses']->vid, 'Necessities');
+   financial_statement_add_term($voc['expenses']->vid, 'Taxes', $term->tid);
+   financial_statement_add_term($voc['expenses']->vid, 'Credit Card', $term->tid);
+   financial_statement_add_term($voc['expenses']->vid, 'Car Payments', $term->tid);
+   $term = financial_statement_add_term($voc['expenses']->vid, 'Play');
+   $term = financial_statement_add_term($voc['expenses']->vid, 'Give');
+   
+   $term = financial_statement_add_term($voc['assets']->vid, 'Bank Accounts');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Stocks');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Bonds');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Real Estate');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Receivables');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Business');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Limited Partnerships');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Personal');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Home');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Car');
+   $term = financial_statement_add_term($voc['assets']->vid, 'Credit Cards');
+}
+
