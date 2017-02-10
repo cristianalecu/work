@@ -9,6 +9,7 @@
 drupal7/*
 !drupal7/sites
 drupal7/sites/*
+!drupal7/sites/sites.php
 !drupal7/sites/all
 drupal7/sites/all/*
 
