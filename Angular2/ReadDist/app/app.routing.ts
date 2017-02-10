@@ -17,7 +17,7 @@ const appRoutes: Routes = [
     {
         path: 'tasks',
         component: TasksComponent,
-    }
+    },
 ]
 
 export const routing: ModuleWithProviders = RouterModule.forRoot(appRoutes);

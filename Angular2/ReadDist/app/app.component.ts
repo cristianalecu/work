@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { routing } from './app.routing';
 
 @Component({
   selector: 'my-app',
@@ -9,7 +10,7 @@ import { Component } from '@angular/core';
     <li><a routerLink="/about">About</a></li>
   </ul>
   <hr />
-  <router-outlet></router-outlet>`,
+  <router-outlet> </router-outlet>`,
 })
 export class AppComponent  { 
   
