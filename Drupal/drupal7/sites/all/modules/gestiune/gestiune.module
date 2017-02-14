@@ -232,4 +232,4 @@ TRUNCATE `ges_cache_variable`;
 TRUNCATE `ges_cache_views`;
 TRUNCATE `ges_cache_views_data`;
 TRUNCATE `ges_sessions`;
-*/ 
+*/

@@ -402,4 +402,4 @@ jQuery().ready(function()
 });  
 
 //<select id="item_name_combo" name="item_name_combo" class="form-select"></select>
-//<option value="240">TIG. GLAMOUR SUNSHINE BLS 10</option> 
+//<option value="240">TIG. GLAMOUR SUNSHINE BLS 10</option>
