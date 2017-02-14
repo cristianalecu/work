@@ -10,7 +10,6 @@ include_once 'gestiune.features.inc';
  * Implementation of hook_init().
  */
 function gestiune_init() {
-    global $user;
 	
 	drupal_add_css(drupal_get_path('module', 'gestiune') .'/css/gestiune.css');
 	drupal_add_js(drupal_get_path('module', 'gestiune') .'/js/gestiune.js');
@@ -25,3 +24,212 @@ function gestiune_init() {
 		}
 	}
 } 
+
+function gestiune_raport_total($uid, $date_form, $date_to)
+{
+global $user;
+  if($uid == 0)
+    $uid = $user->uid;
+	  $htmlTab = '';
+	  $nrcrt = 0;
+	  $sSql = "select itm_ndx, item_code, item_name, barcode, price, um, vendor_id, q, v from {user_item} i ";
+      $sSql .= "join (SELECT  item_ndx, sum(qty*type) q, sum(val_no_vat*type) v from {user_entries} ";
+      $sSql .= "  where uid=$uid and nid in (select nid from {node} n, {field_data_field_data_document} d ";
+      $sSql .= "    where n.uid=$uid and (type='nir' or type='v_nz_ri') and n.nid=d.entity_id and ";
+      $sSql .= "  field_data_document_value between '$date_form' and '$date_to' ) group by item_ndx) e ";
+      $sSql .= "on i.itm_ndx=e.item_ndx "; 
+	  $result = db_query($sSql);
+	  foreach ($result as $rs) 
+	  {
+	  	$nrcrt++;
+	  	 if(strlen($htmlTab) == 0)
+	  	 {
+	  	 	$htmlTab .= '<div id="intrari-raport">';
+	     	$htmlTab .= ' <table class="views-table"><thead><tr>';
+	     	$htmlTab .= '  <th>No Crt</th><th>Item Name</th><th>Item Code</th><th>Barcode</th><th>Qty</th>';
+	     	$htmlTab .= '  <th>UM</th><th>Unit Price</th><th>Value w/o VAT</th>';
+	     	$htmlTab .= ' </tr></thead><tbody>';
+	  	 }
+	  	 $htmlTab .="<tr><td>$nrcrt</td><td>$rs->item_name</td><td>$rs->item_code</td><td>$rs->barcode</td>";
+	  	 $htmlTab .="<td>$rs->q</td><td>$rs->um</td><td>$rs->price</td><td>$rs->v</td></tr>";
+	  }
+	  if(strlen($htmlTab) != 0)
+  	 {
+     	$htmlTab .= ' </tbody></table>';
+  	 }
+  	 return $htmlTab;
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function gestiune_node_view($node) {
+
+  if($node->type == 'nir' || $node->type == 'v_nz_ri') 
+  {
+	  $htmlTab = '';
+	  $sSql  = "SELECT i.itm_ndx, e.nrcrt, e.qty, i.item_code, i.intcode, i.item_name, i.barcode, i.price, i.um, i.vendor_id, e.val_no_vat from {user_entries} e, {user_item} i where e.item_ndx=i.itm_ndx and uid=$node->uid and nid=$node->nid order by nrcrt "; 
+	  $result = db_query($sSql);
+	  foreach ($result as $rs) 
+	  {
+	  	 if(strlen($htmlTab) == 0)
+	  	 {
+	  	 	$htmlTab .= '<div id="intrari-raport">';
+	     	$htmlTab .= '<b>Intrari</b>';
+	     	$htmlTab .= ' <table class="views-table"><thead><tr>';
+	     	$htmlTab .= '  <th>No Crt</th><th>Item Name</th><th>Item Code</th><th>Barcode</th><th>Qty</th>';
+	     	$htmlTab .= '  <th>UM</th><th>Unit Price</th><th>Value w/o VAT</th>';
+	     	$htmlTab .= ' </tr></thead><tbody>';
+	  	 }
+	  	 $htmlTab .="<tr><td>$rs->nrcrt</td><td>$rs->item_name</td><td>$rs->item_code</td><td>$rs->barcode</td>";
+	  	 $htmlTab .="<td>$rs->qty</td><td>$rs->um</td><td>$rs->price</td><td>$rs->val_no_vat</td></tr>";
+	  }
+	  if(strlen($htmlTab) != 0)
+  	  {
+     	$htmlTab .= ' </tbody></table></div>';
+  	  }
+  }
+  if($node->type == 'nir') {
+  	  $node->content['field_nr_document']['#suffix'] = $htmlTab;
+  }
+  else if($node->type == 'v_nz_ri') {
+  	  $node->content['field_nr_document']['#suffix'] = $htmlTab;
+  }
+}
+
+function gestiune_form_alter(&$form, &$form_state, $form_id) 
+{
+  if($form['#form_id'] == 'nir_node_form' || $form['#form_id'] == 'v_nz_ri_node_form')
+  {
+      $htmlTab = '<script type="text/javascript">';
+      $htmlTab .= 'var it_names = []; ';
+      $htmlTab .= 'var it_codes = [];   ';
+      $htmlTab .= 'var it_codes2 = [];   ';
+      $htmlTab .= 'var it_barcodes = [];  '; 
+      $htmlTab .= 'var it_ums = [];   ';
+      $htmlTab .= 'var it_prices = [];   ';
+      $htmlTab .= 'var it_suppls = []; ';
+	  $sSql  = "SELECT i.*, v.entity_id FROM {user_item} i LEFT outer join {field_data_field_vendor_number} v on i.vendor_id = v.field_vendor_number_value where i.active=1 "; 
+	  $result = db_query($sSql);
+	  foreach ($result as $rs) 
+	  {
+	  	   $htmlTab .= "\n";
+	  	   $htmlTab .= "it_names[$rs->itm_ndx]='$rs->item_name';";
+	  	   $htmlTab .= "it_codes[$rs->itm_ndx]='$rs->item_code';";
+	  	   $htmlTab .= "it_codes2[$rs->itm_ndx]='$rs->intcode';";
+	  	   $htmlTab .= "it_barcodes[$rs->itm_ndx]='$rs->barcode';";
+	  	   $htmlTab .= "it_ums[$rs->itm_ndx]='$rs->um';";
+	  	   $htmlTab .= "it_prices[$rs->itm_ndx]=$rs->price;";
+	  	   if(isset($rs->entity_id))
+	  	   		$htmlTab .= "it_suppls[$rs->itm_ndx]=$rs->entity_id;";
+	  	   else 
+	  	        $htmlTab .= "it_suppls[$rs->itm_ndx]=0;";
+	  }
+	  $htmlTab .= "\n";
+	  $htmlTab .= 'var tab_ndx = [];    var tab_qty = [];   var tab_val = [];';
+	  if(isset($form_state['node']->nid))
+	  {
+	      $nid = $form_state['node']->nid;
+	      $uid = $form_state['node']->uid;
+		  $sSql  = "SELECT item_ndx, qty, val_no_vat from {user_entries}  where  uid=$uid and nid=$nid order by nrcrt "; 
+		  $result = db_query($sSql);
+		  $cnt = 0;
+		  foreach ($result as $rs) 
+		  {
+		  	 $htmlTab .="tab_ndx[$cnt]=" . $rs->item_ndx . ';';
+		  	 $htmlTab .="tab_qty[$cnt]=" . $rs->qty . ';';
+		  	 $htmlTab .="tab_val[$cnt]=" . $rs->val_no_vat . ';';
+		  	 $cnt++;
+		  }
+	  }
+      $htmlTab .= ' </script>';
+
+  }
+  if($form['#form_id'] == 'nir_node_form')
+  {
+      $form['#submit'][] = 'gestiune_form_nir_submit';
+      $form['field_data_document']['#prefix'] = $htmlTab;
+  }
+  else if($form['#form_id'] == 'v_nz_ri_node_form')
+  {
+      $form['#submit'][] = 'gestiune_form_vanzari_submit';
+      $form['field_data_document']['#prefix'] = $htmlTab;
+  }
+}
+
+function gestiune_node_insert($node) 
+{
+
+  if($node->type == 'nir' || $node->type == 'v_nz_ri') 
+  {
+	  $sSql="update {user_entries} set nid=$node->nid where uid=$node->uid and nid=0";
+	  db_query($sSql);
+  }
+}
+
+function gestiune_form_nir_submit($form, &$form_state) 
+{
+  $nid = 0;
+  if(isset($form_state['node']->nid))
+  	$nid = $form_state['node']->nid; 
+  $uid = $form_state['node']->uid; //owner of the node 
+  $nrcrt=0;
+  $max_id_intrari = $form_state['input']['max_id_intrari'];
+  $sSql="delete from {user_entries} where uid=$uid and nid=$nid";
+  db_query($sSql);
+  for($i = 0; $i<=$max_id_intrari; $i++)
+  {
+  	if( isset($form_state['input']["itm_ndx_$i"]) && $form_state['input']["itm_ndx_$i"] >= 0)
+  	{
+  		$nrcrt++;
+  		$sSql="insert into {user_entries} values($uid, $nid, 1, $nrcrt, '" . $form_state['input']["itm_ndx_$i"] ;
+  		$sSql .= "', ' ', '" . $form_state['input']["item_code_text_$i"] . "', '" . $form_state['input']["item_barcode_text_$i"] ;
+  		$sSql .= "', '" . $form_state['input']["quantity_text_$i"] . "', 0, ' ', '" . $form_state['input']["itm_val_$i"] . "', 0, 0, ' '  )";
+        db_query($sSql);  		
+  	}
+  }
+}
+
+function gestiune_form_vanzari_submit($form, &$form_state) 
+{
+  $nid = 0;
+  if(isset($form_state['node']->nid))
+  	$nid = $form_state['node']->nid; 
+  $uid = $form_state['node']->uid; //owner of the node 
+  $nrcrt=0;
+  $max_id_intrari = $form_state['input']['max_id_intrari'];
+  $sSql="delete from {user_entries} where uid=$uid and nid=$nid";
+  db_query($sSql);
+  for($i = 0; $i<=$max_id_intrari; $i++)
+  {
+  	if( isset($form_state['input']["itm_ndx_$i"]) && $form_state['input']["itm_ndx_$i"] >= 0)
+  	{
+  		$nrcrt++;
+  		$sSql="insert into {user_entries} values($uid, $nid, -1, $nrcrt, '" . $form_state['input']["itm_ndx_$i"] ;
+  		$sSql .= "', ' ', '" . $form_state['input']["item_code_text_$i"] . "', '" . $form_state['input']["item_barcode_text_$i"] ;
+  		$sSql .= "', '" . $form_state['input']["quantity_text_$i"] . "', 0, ' ', '" . $form_state['input']["itm_val_$i"] . "', 0, 0, ' '  )";
+        db_query($sSql);  		
+  	}
+  }
+}
+
+/*
+TRUNCATE `ges_cache`;
+TRUNCATE `ges_cache_block`;
+TRUNCATE `ges_cache_bootstrap`;
+TRUNCATE `ges_cache_features`;
+TRUNCATE `ges_cache_field`;
+TRUNCATE `ges_cache_filter`;
+TRUNCATE `ges_cache_form`;
+TRUNCATE `ges_cache_image`;
+TRUNCATE `ges_cache_l10n_update`;
+TRUNCATE `ges_cache_libraries`;
+TRUNCATE `ges_cache_menu`;
+TRUNCATE `ges_cache_page`;
+TRUNCATE `ges_cache_path`;
+TRUNCATE `ges_cache_update`;
+TRUNCATE `ges_cache_variable`;
+TRUNCATE `ges_cache_views`;
+TRUNCATE `ges_cache_views_data`;
+TRUNCATE `ges_sessions`;
+*/ 

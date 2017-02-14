@@ -35,3 +35,15 @@ div.field-type-datetime.field-name-field-data-document.field-widget-date-popup
 float:right;
 }
 
+div.field.field-name-field-data-document.field-type-datetime.field-label-inline.clearfix
+{
+    display: flex;
+}
+div.field.field-name-field-nr-document.field-type-text.field-label-inline.clearfix
+{
+    display: flex;
+}
+div.field.field-name-field-supplier.field-type-taxonomy-term-reference.field-label-inline.clearfix
+{
+    display: flex;
+} 
