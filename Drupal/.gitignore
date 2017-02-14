@@ -38,6 +38,8 @@ drupal7/sites/all/themes/*
 
 !drupal7/sites/all/themes/game_war
 !drupal7/sites/all/themes/game_war/*
+!drupal7/sites/all/themes/game_war_resp_theme
+!drupal7/sites/all/themes/game_war_resp_theme/*
 
 
 
