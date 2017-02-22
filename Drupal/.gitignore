@@ -12,6 +12,12 @@ drupal7/sites/*
 !drupal7/sites/sites.php
 !drupal7/sites/all
 drupal7/sites/all/*
+!drupal7/sites/duel.dinviselemele.ro
+drupal7/sites/duel.dinviselemele.ro/*
+!drupal7/sites/duel.dinviselemele.ro/settings.php
+!drupal7/sites/gestiune.itcomplace.ro
+drupal7/sites/gestiune.itcomplace.ro/*
+!drupal7/sites/gestiune.itcomplace.ro/settings.php 
 
 !drupal7/sites/all/modules
 !drupal7/sites/all/themes
