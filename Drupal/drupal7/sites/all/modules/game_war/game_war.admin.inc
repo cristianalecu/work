@@ -228,7 +228,7 @@ function game_war_form_admin($form, &$form_state, $edit = array()) {
 				'#size' => 2,
 				'#required' => TRUE,
 				'#default_value' => '0',
-    		    '#description' => '1 - Add 140 users<br>2 - reset positions<br>3 - add user gamedata<br>100 - reset whole game data',
+    		    '#description' => '1 - Add 140 users<br>2 - reset positions<br>3 - add user gamedata<br>99 - x-0 data<br>100 - reset whole game data',
 	);	
     $form['tab_admin']['submit'] = array(
 			'#name' => 'date_admin',
@@ -468,6 +468,9 @@ $names = array_merge($names, array('barza','carly','dvdy','garon','zum','molozo'
   	game_war_add_users_gamedata();
   	$sSql = "update {user_gamedata} g set g.name = (select u.name from {users} u where u.uid=g.uid)";
   	db_query($sSql);
+  }
+  else if($form_state['values']['usrlevel'] == 99) {
+  	game_war_X0_Data();
   }
   else if($form_state['values']['usrlevel'] == 100) {
   	$sSql = "delete from {user_weapons} where uid= $uid";
