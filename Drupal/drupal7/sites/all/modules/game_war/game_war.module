@@ -423,8 +423,40 @@ function game_war_get_gamesettings() {
 	}
 }
 
-function game_war_X0_Data() {
+function game_war_X0_NextMove(&$x0_gamedata) {
 	
+}
+function game_war_X0_Data() {
+	$found = 0;
+	if($found == 0)
+	{
+		$sSql  = "DROP TABLE xo_data";
+		db_query($sSql);
+		$sSql = "CREATE TABLE  xo_data (";
+		$sSql .= " id int(11) NOT NULL DEFAULT '0' COMMENT 'Unique ID of solution' ,";
+		$sSql .= " m1 tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 to 9' ,";
+		$sSql .= " m2 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m3 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m4 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m5 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m6 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m7 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m8 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " m9 tinyint(1) NOT NULL DEFAULT '0',";
+		$sSql .= " wins tinyint(1) NOT NULL DEFAULT '0' COMMENT '1-the one who starts 0-second playes 2 none' ,";
+		$sSql .= " moves tinyint(1) NOT NULL DEFAULT '0' COMMENT 'after how many moves wins' ,";
+		$sSql .= " level tinyint(1) NOT NULL DEFAULT '0' COMMENT '0-easy 1-normal 2-hard 3-expert' ";
+		$sSql .= ")";
+		db_query($sSql);
+	}
+	$sSql  = "SELECT * FROM information_schema.tables WHERE table_schema = 'duel' AND table_name = 'xo_data' LIMIT 1; ";
+	$result = db_query($sSql);
+
+	$x0_gamedata =array (
+			'id_nextMove' => 0,  
+			'moves' => array(0,0,0,0,0,0,0,0,0),
+	);
+	game_war_X0_NextMove($x0_gamedata);
 }
 
 function game_war_refresh_positions() {
