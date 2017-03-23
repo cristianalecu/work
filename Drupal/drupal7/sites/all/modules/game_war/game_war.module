@@ -423,8 +423,57 @@ function game_war_get_gamesettings() {
 	}
 }
 
+function game_war_X0_Save($x0_gamedata, $wins, $moves, $level) {
+
+	$sSql = "insert into xo_data values (";
+	$sSql .= " select COALESCE(max(id),0)+1 from xo_data,  ";
+	for($i=0; $i<9; $i++) {
+		$sSql .= $x0_gamedata['moves'][$i] . ",  ";
+	}
+	$sSql .= " $wins, $moves, $level)";
+	db_query($sSql);
+
+}
+function game_war_X0_Win($x0_gamedata, $player) {
+
+	for($i=0; $i<length($x0_gamedata['win_targets']); $i++) 
+	{
+		if($x0_gamedata['board'][$x0_gamedata['win_targets'][$i][0]]== $player &&
+		   $x0_gamedata['board'][$x0_gamedata['win_targets'][$i][1]]== $player &&
+		   $x0_gamedata['board'][$x0_gamedata['win_targets'][$i][2]]== $player )  
+		{
+			return 1; //win
+		}
+	}
+	return 0;  // no winner
+}
 function game_war_X0_NextMove(&$x0_gamedata) {
-	
+	for($i=0; $i<9; $i++) {   //where
+		if($x0_gamedata['board'][$i] == -1000)  //can move
+		{
+			$move =  ($x0_gamedata['id_nextMove'] % 2 == 0) ? 1 : 2;  //what
+			$x0_gamedata['board'][$i] = $move;
+			$x0_gamedata['moves'][$x0_gamedata['id_nextMove']] = $i;
+			$x0_gamedata['id_nextMove'] += 1;
+			if(game_war_X0_Win($x0_gamedata, $move))
+			{
+				// '0-easy 1-normal 2-hard 3-expert'
+				$level = 0;
+				game_war_X0_Save($x0_gamedata, $move, $x0_gamedata['id_nextMove'], $level);
+			}
+			else if ($x0_gamedata['id_nextMove'] == 9) //last move - no winner
+			{
+				game_war_X0_Save($x0_gamedata, 2, $x0_gamedata['id_nextMove'], $level);
+			}
+			else 
+			{
+				game_war_X0_NextMove($x0_gamedata);
+			}
+			$x0_gamedata['id_nextMove'] -= 1;
+			$x0_gamedata['board'][$i] = -1000;
+			$x0_gamedata['moves'][$x0_gamedata['id_nextMove']] = 0;
+		}
+	}
 }
 function game_war_X0_Data() {
 	$found = 0;
@@ -451,10 +500,24 @@ function game_war_X0_Data() {
 	}
 	$sSql  = "SELECT * FROM information_schema.tables WHERE table_schema = 'duel' AND table_name = 'xo_data' LIMIT 1; ";
 	$result = db_query($sSql);
-
+	foreach ($result as $rs) {
+		$cols = lenght($rs);
+	}
+	
 	$x0_gamedata =array (
 			'id_nextMove' => 0,  
 			'moves' => array(0,0,0,0,0,0,0,0,0),
+			'board' => array(-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000),
+			'win_targets' => array(
+					array(0, 1, 2),
+					array(3, 4, 5),
+					array(6, 7, 8),
+					array(0, 3, 6),
+					array(1, 4, 7),
+					array(2, 5, 8),
+					array(0, 4, 8),
+					array(2, 4, 6),
+			)
 	);
 	game_war_X0_NextMove($x0_gamedata);
 }
