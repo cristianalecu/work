@@ -425,18 +425,17 @@ function game_war_get_gamesettings() {
 
 function game_war_X0_Save($x0_gamedata, $wins, $moves, $level) {
 
-	$sSql = "insert into xo_data values (";
-	$sSql .= " select COALESCE(max(id),0)+1 from xo_data,  ";
+	$sSql = "insert into xo_data (select COALESCE(max(id),0)+1,  ";
 	for($i=0; $i<9; $i++) {
 		$sSql .= $x0_gamedata['moves'][$i] . ",  ";
 	}
-	$sSql .= " $wins, $moves, $level)";
+	$sSql .= " $wins, $moves, $level from xo_data)";
 	db_query($sSql);
 
 }
 function game_war_X0_Win($x0_gamedata, $player) {
 
-	for($i=0; $i<length($x0_gamedata['win_targets']); $i++) 
+	for($i=0; $i<count($x0_gamedata['win_targets']); $i++) 
 	{
 		if($x0_gamedata['board'][$x0_gamedata['win_targets'][$i][0]]== $player &&
 		   $x0_gamedata['board'][$x0_gamedata['win_targets'][$i][1]]== $player &&
@@ -449,6 +448,8 @@ function game_war_X0_Win($x0_gamedata, $player) {
 }
 function game_war_X0_NextMove(&$x0_gamedata) {
 	for($i=0; $i<9; $i++) {   //where
+		if($x0_gamedata['id_nextMove'] == 0 && $i != 0 && $i != 1 && $i != 4 )
+			continue;
 		if($x0_gamedata['board'][$i] == -1000)  //can move
 		{
 			$move =  ($x0_gamedata['id_nextMove'] % 2 == 0) ? 1 : 2;  //what
@@ -459,13 +460,15 @@ function game_war_X0_NextMove(&$x0_gamedata) {
 			{
 				// '0-easy 1-normal 2-hard 3-expert'
 				$level = 0;
+				if($x0_gamedata['id_nextMove'] == 9) $level = 2;
+				if($x0_gamedata['id_nextMove'] == 8) $level = 1;
 				game_war_X0_Save($x0_gamedata, $move, $x0_gamedata['id_nextMove'], $level);
 			}
 			else if ($x0_gamedata['id_nextMove'] == 9) //last move - no winner
 			{
-				game_war_X0_Save($x0_gamedata, 2, $x0_gamedata['id_nextMove'], $level);
+				game_war_X0_Save($x0_gamedata, 0, $x0_gamedata['id_nextMove'], 3);
 			}
-			else 
+			else
 			{
 				game_war_X0_NextMove($x0_gamedata);
 			}
@@ -492,7 +495,7 @@ function game_war_X0_Data() {
 		$sSql .= " m7 tinyint(1) NOT NULL DEFAULT '0',";
 		$sSql .= " m8 tinyint(1) NOT NULL DEFAULT '0',";
 		$sSql .= " m9 tinyint(1) NOT NULL DEFAULT '0',";
-		$sSql .= " wins tinyint(1) NOT NULL DEFAULT '0' COMMENT '1-the one who starts 0-second playes 2 none' ,";
+		$sSql .= " wins tinyint(1) NOT NULL DEFAULT '0' COMMENT '1-the one who starts 2-second player 0-none' ,";
 		$sSql .= " moves tinyint(1) NOT NULL DEFAULT '0' COMMENT 'after how many moves wins' ,";
 		$sSql .= " level tinyint(1) NOT NULL DEFAULT '0' COMMENT '0-easy 1-normal 2-hard 3-expert' ";
 		$sSql .= ")";
@@ -501,7 +504,7 @@ function game_war_X0_Data() {
 	$sSql  = "SELECT * FROM information_schema.tables WHERE table_schema = 'duel' AND table_name = 'xo_data' LIMIT 1; ";
 	$result = db_query($sSql);
 	foreach ($result as $rs) {
-		$cols = lenght($rs);
+		$cols = count($rs);
 	}
 	
 	$x0_gamedata =array (
@@ -516,8 +519,24 @@ function game_war_X0_Data() {
 					array(1, 4, 7),
 					array(2, 5, 8),
 					array(0, 4, 8),
-					array(2, 4, 6),
-			)
+					array(2, 4, 6)	),
+			'transpositions' => array(
+					array(6,3,0,7,4,1,8,5,2),
+					array(2,5,8,1,4,7,0,3,1),
+					array(8,7,6,5,4,3,2,1,0),
+					array(0,3,6,1,4,7,2,5,8),
+					array(2,1,0,5,4,3,8,7,6),
+					array(6,7,8,3,4,5,0,1,2),
+					array(8,5,2,7,4,1,6,3,0)  )
+			// sunt 8 feluri de a parcurge o tabla: (din care 7 sunt transpozitii)
+			// x -> , y -> , (x,y)
+			// x -> , y -> , (y,x)
+			// x -> , y <- , (x,y)
+			// x -> , y <- , (y,x)
+			// x <-, y -> , (x,y)
+			// x <-, y -> , (y,x)
+			// x <-, y <- , (x,y)
+			// x <-, y <- , (y,x)
 	);
 	game_war_X0_NextMove($x0_gamedata);
 }
