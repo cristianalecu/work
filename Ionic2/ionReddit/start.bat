@@ -1,3 +1,3 @@
-npm install
+rem npm install
 
 ionic serve
