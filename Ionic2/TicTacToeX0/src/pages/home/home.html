@@ -3,16 +3,50 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Home</ion-title>
+    <ion-title>Play</ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  <h3>Ionic Menu Starter</h3>
-
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will show you the way.
-  </p>
-
-  <button ion-button secondary menuToggle>Toggle Menu</button>
+  <div id="dificulty" class="button-bar">
+    <button ion-button [color]="dificulty == 0 ? 'light' : 'primary'">Easy</button>
+    <button ion-button >Normal</button>
+    <button ion-button >Hard</button>
+    <button ion-button >Expert</button>
+  </div>
+  <div id="playtable" class="buttons-table">
+    <div id="row1">
+      <button ion-button outline icon-left large> </button>
+      <button ion-button outline icon-left large> </button>
+      <button ion-button outline icon-left large> </button>
+    </div>
+    <div id="row2">
+      <button ion-button outline icon-left large>0</button>
+      <button ion-button outline icon-left large>X</button>
+      <button ion-button outline icon-left large>0</button>
+    </div>
+    <div id="row3">
+      <button ion-button outline icon-left large> </button>
+      <button ion-button outline icon-left large> </button>
+      <button ion-button outline icon-left large> </button>
+    </div>
+  </div>  
+    <p>
+      Has to move: 
+      <b>Player 1</b> (
+      <u>X</u>)
+    </p>
+    <div class="button-bar">
+      <button  ion-button >Undo</button>
+      <button  ion-button >Sugest</button>
+    </div>
+    <p>
+      Score: Player1
+      <b>0</b> - Player2
+      <b>0</b>
+    </p>
+    <div class="button-bar">
+      <button ion-button >Single Player</button>
+      <button ion-button >New Game</button>
+    </div>
 </ion-content>
