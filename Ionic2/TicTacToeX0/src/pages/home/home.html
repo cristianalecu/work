@@ -3,7 +3,7 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Play</ion-title>
+    <ion-title>{{ 'HELLO' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
 
@@ -34,7 +34,7 @@
     <p>
       Has to move: 
       <b>Player 1</b> (
-      <u>X</u>)
+      <u>X</u>) {{players}}
     </p>
     <div class="button-bar">
       <button  ion-button >Undo</button>

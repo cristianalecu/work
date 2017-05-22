@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
   selector: 'page-home',
@@ -16,6 +17,8 @@ export class HomePage
   /** 1 - Single player
    *  2 - Two players   */
   nr_players: number;
+  players: string;
+  lang: string;
 
   /** Player who has to move
    *  0 - Player 2 (0)
@@ -31,11 +34,20 @@ export class HomePage
 
   moves_hostory: Array<number>;
 
-  constructor(public navCtrl: NavController) {
+  constructor(public navCtrl: NavController, translate: TranslateService) 
+  {
+    translate.setDefaultLang('en');
+    translate.get('START').subscribe(   value => {
+      this.players = value; 
+      this.lang = navigator.language;
+    } ) ;    
     this.getCurrentGame();
+    this.lang = translate.currentLang;
+    this.lang = navigator.language;
   }
 
-  getCurrentGame(){
+  getCurrentGame()
+  {
     if(localStorage.getItem('dificulty') != null) {
       this.dificulty = parseInt(localStorage.getItem('dificulty'));
     }
@@ -47,4 +59,11 @@ export class HomePage
       this.player_computer = 0;
     }
   }
+}
+
+export class SchedulePage {
+    constructor(translate: TranslateService) {
+        // this language will be used as a fallback when a translation isn't found in the current language
+        translate.setDefaultLang('en');
+    }
 }
