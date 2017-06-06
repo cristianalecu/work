@@ -1,10 +1,10 @@
-import { IonicHelloWorldPage } from './app.po';
+import { Ang4tstPage } from './app.po';
 
-describe('ionic-hello-world App', function() {
-  let page: IonicHelloWorldPage;
+describe('ang4tst App', () => {
+  let page: Ang4tstPage;
 
   beforeEach(() => {
-    page = new IonicHelloWorldPage();
+    page = new Ang4tstPage();
   });
 
   it('should display message saying app works', () => {
