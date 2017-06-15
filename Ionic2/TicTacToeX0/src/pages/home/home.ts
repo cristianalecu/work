@@ -194,6 +194,11 @@ export class HomePage
       this.saveCurrentGame();
     }
   }
+
+  toggleDifficulty(difi: number)
+  {
+    this.dificulty = difi;
+  }
 }
 
 export class SchedulePage {

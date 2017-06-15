@@ -1,4 +1,16 @@
 {
   "HELLO": "Salut",
-  "START": "start"
+  "EASY" : "Ușor",
+  "NORMAL": "Normal",
+  "HARD"  : "Greu",
+  "EXPERT": "Expert",
+  "HAS TO MOVE": "La mutare:",
+  "PLAYER"     : "Jucătorul",
+  "UNDO"       : "Șterge",
+  "SUGGEST"    : "Sugerează",
+  "SCORE"      : "Scor:",
+  "SINGLE PLAYER" : "Un jucător",
+  "TWO PLAYERS": "Doi jucători",
+  "NEW GAME"   : "Joc nou"
 }
+

@@ -1,4 +1,15 @@
 {
   "HELLO": "Hello",
-  "START": "starts"
+  "EASY" : "Easy",
+  "NORMAL": "Normal",
+  "HARD"  : "Hard",
+  "EXPERT": "Expert",
+  "HAS TO MOVE": "Has to move:",
+  "PLAYER"     : "Player",
+  "UNDO"       : "Undo",
+  "SUGGEST"    : "Suggest",
+  "SCORE"      : "Score",
+  "SINGLE PLAYER" : "Single player",
+  "TWO PLAYERS": "Doi jucatori",
+  "NEW GAME"   : "New game"
 }
