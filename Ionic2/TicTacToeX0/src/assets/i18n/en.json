@@ -11,5 +11,8 @@
   "SCORE"      : "Score",
   "SINGLE PLAYER" : "Single player",
   "TWO PLAYERS": "Doi jucatori",
-  "NEW GAME"   : "New game"
+  "NEW GAME"   : "New game",
+  "ARE YOU SURE TO START A NEW GAME?":"Are you sure you want to start a new game?",
+  "YES" : "Yes",
+  "NO"  : "No"
 }

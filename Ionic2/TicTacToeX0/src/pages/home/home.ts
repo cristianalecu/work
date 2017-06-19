@@ -48,6 +48,9 @@ export class HomePage
   msgAreYouSure: string;
   msgYes: string;
   msgNo: string;
+  msgSinglePlater: string;
+  msgTwoPlayers: string;
+  msgPlayers: string;
 
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController) 
   {
@@ -140,6 +143,7 @@ export class HomePage
         this.statistics[index][0] = parseInt(localStorage.getItem('statistics0'+index));
         this.statistics[index][1] = parseInt(localStorage.getItem('statistics1'+index));
       }
+    this.msgPlayers = (this.nr_players == 1) ? this.msgSinglePlater : this.msgTwoPlayers;
   }
 
   saveCurrentGame()
@@ -182,6 +186,12 @@ export class HomePage
    this.translater.get('NO').subscribe(   value => {
       this.msgNo = value; 
     } ) ;    
+    this.translater.get('SINGLE PLAYER').subscribe(   value => {
+      this.msgSinglePlater = value; 
+    } ) ;
+    this.translater.get('TWO PLAYERS').subscribe(   value => {
+      this.msgTwoPlayers = value; 
+    } ) ;  
   }
 
   togglePlayers()
@@ -190,11 +200,52 @@ export class HomePage
     if(this.move == 0)
     {
       this.nr_players = 2 - this.nr_players;
+      this.msgPlayers = (this.nr_players == 1) ? this.msgSinglePlater : this.msgTwoPlayers;
       this.player_computer = 0;
       this.saveCurrentGame();
     }
   }
 
+  toggleNewGame()
+  {
+    this.ask_new_game();
+    if(this.move == 0)
+    {
+      this.player_computer = 1 - this.player_computer;
+      this.saveCurrentGame();
+    }
+  }
+
+  playUndo()
+  {
+    if(this.move != 0)
+    {
+      this.board[this.moves[this.move-1]] = '';
+      this.move--;
+      this.player = 2 - this.player;
+      if(this.player_computer == 1)
+      {
+        this.board[this.moves[this.move-1]] = '';
+        this.move--;     
+        this.player = 2 - this.player;   
+      }
+      this.saveCurrentGame();
+    }
+  }
+
+  playSuggest()
+  {
+
+  }
+
+  playMove(buton: number)
+  {
+    if(this.board[buton])
+    {
+
+    }
+
+  }  
   toggleDifficulty(difi: number)
   {
     this.dificulty = difi;
