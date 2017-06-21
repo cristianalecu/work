@@ -238,14 +238,34 @@ export class HomePage
 
   }
 
-  playMove(buton: number)
+  playMove(button: number)
   {
-    if(this.board[buton])
+    if(this.board[button] == '')
     {
-
+      this.board[button] = (this.player == 1) ? 'X' : '0';
+      this.moves[this.move] = button;
+      this.move++;      
     }
-
+    if(this.checkWinner() == this.player)
+    {
+      
+    }
   }  
+
+  /** Returns 1 if X wins   
+   *          0 if 0 win0   
+   *         -1 otherwise    */
+  checkWinner()
+  {
+    this.targets.forEach(element => {
+      if(this.board[element[0]-1] == 'X' && this.board[element[1]-1] == 'X' && this.board[element[2]-1] == 'X')
+        return 1;
+      else if(this.board[element[0]-1] == '0' && this.board[element[1]-1] == '0' && this.board[element[2]-1] == '0')
+        return 0;
+    });
+    return -1;
+  }
+
   toggleDifficulty(difi: number)
   {
     this.dificulty = difi;
