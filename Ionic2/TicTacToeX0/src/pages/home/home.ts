@@ -235,27 +235,71 @@ export class HomePage
 
   playSuggest()
   {
+    var move: number;
 
+    move = Math.floor((Math.random() * 10));
+    while (this.board[move] != '') 
+    {
+      move++;
+      if(move > 9) 
+        move = 0;
+    }
+    
+    this.board[move] = (this.player == 1) ? 'X' : '0';
+    this.moves[this.move] = move;
+    this.move++;
+    this.player = 1 - this.player;
+    this.saveCurrentGame();
   }
 
   playMove(button: number)
   {
+    var win:number;
     if(this.board[button] == '')
     {
       this.board[button] = (this.player == 1) ? 'X' : '0';
       this.moves[this.move] = button;
       this.move++;      
     }
-    if(this.checkWinner() == this.player)
+    win = this.checkWinner(this.player);
+    if(win >= 0)
     {
-      
+      this.showWinner(win);
+    }
+    else
+    {
+      this.player = 1 - this.player;
+      if(this.nr_players == 1)
+        this.playSuggest();
+      else
+        this.saveCurrentGame();
     }
   }  
 
-  /** Returns 1 if X wins   
-   *          0 if 0 win0   
+  /** Returns target line index if the player wins   
    *         -1 otherwise    */
-  checkWinner()
+  checkWinner( player:number)
+  {
+    var index: number; 
+    
+    for (index = 0; index < this.targets.length; index++) {
+      var element = this.targets[index];
+      
+      if(player==1)
+      {
+         if(this.board[element[0]-1] == 'X' && this.board[element[1]-1] == 'X' && this.board[element[2]-1] == 'X')
+           return index;
+      }
+      else
+      {
+         if(this.board[element[0]-1] == '0' && this.board[element[1]-1] == '0' && this.board[element[2]-1] == '0')
+           return index;
+      }
+    }
+    return -1;
+  }
+
+  showWinner(target: number)
   {
     this.targets.forEach(element => {
       if(this.board[element[0]-1] == 'X' && this.board[element[1]-1] == 'X' && this.board[element[2]-1] == 'X')
@@ -265,7 +309,6 @@ export class HomePage
     });
     return -1;
   }
-
   toggleDifficulty(difi: number)
   {
     this.dificulty = difi;
