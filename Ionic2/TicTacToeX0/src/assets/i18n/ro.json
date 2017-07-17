@@ -14,6 +14,7 @@
   "NEW GAME"   : "Joc nou",
   "ARE YOU SURE TO START A NEW GAME?":"Ești sigur că vrei să începi un joc nou?",
   "YES" : "Da",
-  "NO"  : "Nu"
+  "NO"  : "Nu",
+  "WINNER"  : "Câștigător"
 }
 

@@ -7,6 +7,7 @@ import { AlertController } from 'ionic-angular';
   selector: 'page-home',
   templateUrl: 'home.html'
 })
+
 export class HomePage 
 {
   /** 0 - Easy      
@@ -14,6 +15,7 @@ export class HomePage
    *  2 - Hard       
    *  3 - Extpert    */ 
   dificulty: number; 
+  dificulty_save: number;
   
   /** 1 - Single player   
    *  2 - Two players     */
@@ -24,10 +26,27 @@ export class HomePage
    *  0 - Player 2 (0)         
    *  1 - Player 1 (X)         */
   player: number;
+  winner: number; // player that win current game
+  player1name: string;
+  player2name: string;
+  computername: string;
+
+  /** 1 if player 1 plays with X     
+   *  0 if player 1 plays with 0   
+   *  -1 does not matter           */
+  playwith: number;
+
+  /** 1 if player 1 plays with X or 0 always   */
+  playwithalways: number;
 
   /** 0 - Player 2 (0)  
    *  1 - Player 1 (X)    */
   player_computer: number;
+
+  /** 1 - Restart           
+   *  2 - Change Players    
+   *  3 - Change Dificulty  */
+  newGameFor: number;
 
   /** Move that has to be made - 0 based */
   move: number;    
@@ -48,9 +67,11 @@ export class HomePage
   msgAreYouSure: string;
   msgYes: string;
   msgNo: string;
-  msgSinglePlater: string;
+  msgSinglePlayer: string;
   msgTwoPlayers: string;
   msgPlayers: string;
+  msgPlayer: string;
+  msgWinner: string;
 
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController) 
   {
@@ -70,15 +91,22 @@ export class HomePage
                       ,[0,0],[0,0],[0,0],[0,0]];
       this.translater = translate;
       this.userLang = 'en';
+      this.winner = -1;
+      this.player1name = "";
+      this.player2name = "";
+      this.computername = "";
+      this.playwith = -1;
+      this.playwithalways = -1;
 
-      this.checkLanguage();
       this.getCurrentGame();
+      this.checkLanguage();      
   }
 
   init_game()
   {
       this.player = 1;
       this.move = 0;
+      this.winner = -1;
       this.moves = [0, 0, 0, 0, 0, 0, 0, 0, 0];
       this.board = ['', '', '', '', '', '', '', '', ''];
   }
@@ -86,6 +114,7 @@ export class HomePage
  //** return 0 if is new or successfully reset */
   ask_new_game()
   {
+    this.msgPlayers = (this.nr_players == 1) ? this.msgSinglePlayer : this.msgTwoPlayers;
     if(this.move != 0)
     {
       this.presentConfirm();
@@ -107,6 +136,9 @@ export class HomePage
           text: this.msgYes,
           handler: () => {
             this.move=0;
+            if(this.newGameFor == 1) this.toggleNewGame();
+            else if(this.newGameFor == 2) this.togglePlayers();
+            else this.toggleDifficulty(this.dificulty_save);
           }
         }
       ]
@@ -126,6 +158,14 @@ export class HomePage
       this.move = parseInt(localStorage.getItem('move'));
     if(localStorage.getItem('player_computer') != null) 
       this.player_computer = parseInt(localStorage.getItem('player_computer'));
+    if(localStorage.getItem('winner') != null) 
+      this.winner = parseInt(localStorage.getItem('winner'));
+    if(localStorage.getItem('player1name') != null) 
+      this.player1name = localStorage.getItem('player1name');
+    if(localStorage.getItem('player2name') != null) 
+      this.player2name = localStorage.getItem('player2name');
+    if(localStorage.getItem('computername') != null) 
+      this.computername = localStorage.getItem('computername');
     if(this.move > 0)
     {
       for (index = 0; index < this.move; index++)
@@ -143,7 +183,6 @@ export class HomePage
         this.statistics[index][0] = parseInt(localStorage.getItem('statistics0'+index));
         this.statistics[index][1] = parseInt(localStorage.getItem('statistics1'+index));
       }
-    this.msgPlayers = (this.nr_players == 1) ? this.msgSinglePlater : this.msgTwoPlayers;
   }
 
   saveCurrentGame()
@@ -154,6 +193,9 @@ export class HomePage
     localStorage.setItem('player', ''+this.player);
     localStorage.setItem('move', ''+this.move);
     localStorage.setItem('player_computer', ''+this.player_computer);
+    localStorage.setItem('winner', ''+this.winner);
+    localStorage.setItem('player1name', ''+this.player1name);
+    localStorage.setItem('player2name', ''+this.player2name);
     if(this.move > 0)
     {
       for (index = 0; index < this.move; index++) 
@@ -168,52 +210,80 @@ export class HomePage
 
   checkLanguage()
   {
-    this.userLang = navigator.language.split('-')[0];
-    this.userLang = /(ro|en)/gi.test(this.userLang) ? this.userLang : 'en';
+    var lang;
+    lang = navigator.language.split('-')[0];
+    lang = /(ro|en)/gi.test(lang) ? lang : 'en';
+
+    if(this.userLang == lang)
+      return;
  
+    this.userLang = lang;
+    this.msgPlayers = (this.nr_players == 1) ? "SINGLE PLAYER" : "TWO PLAYERS";
+
    this.translater.setDefaultLang('en');
    this.translater.use(this.userLang);
 
    this.translater.get('NEW GAME').subscribe(   value => {
       this.msgNewGame = value; 
-    } ) ;  
+    });  
    this.translater.get('ARE YOU SURE TO START A NEW GAME?').subscribe(  value => {
       this.msgAreYouSure = value; 
-    } ) ;  
+    });  
    this.translater.get('YES').subscribe(   value => {
       this.msgYes = value; 
-    } ) ; 
+    }); 
    this.translater.get('NO').subscribe(   value => {
       this.msgNo = value; 
-    } ) ;    
-    this.translater.get('SINGLE PLAYER').subscribe(   value => {
-      this.msgSinglePlater = value; 
-    } ) ;
+    });
+    this.translater.get('SINGLE PLAYER').subscribe(  value => {
+      this.msgSinglePlayer = value; 
+      if(this.nr_players == 1)
+        this.msgPlayers = value; 
+    });
     this.translater.get('TWO PLAYERS').subscribe(   value => {
       this.msgTwoPlayers = value; 
-    } ) ;  
+      if(this.nr_players == 2)
+        this.msgPlayers = value; 
+    });
+    this.translater.get('WINNER').subscribe(   value => {
+      this.msgWinner = value; 
+    });
+    this.translater.get('PLAYER').subscribe(   value => {
+      this.msgPlayer = value; 
+    });
   }
 
   togglePlayers()
   {
+    this.newGameFor = 2;
     this.ask_new_game();
     if(this.move == 0)
     {
       this.nr_players = 2 - this.nr_players;
-      this.msgPlayers = (this.nr_players == 1) ? this.msgSinglePlater : this.msgTwoPlayers;
       this.player_computer = 0;
+      this.init_game();
       this.saveCurrentGame();
     }
   }
 
+  getPlayers()
+  {
+    return (this.nr_players == 1) ? this.msgSinglePlayer : this.msgTwoPlayers;
+  }
+
   toggleNewGame()
   {
+    this.newGameFor = 1;
     this.ask_new_game();
     if(this.move == 0)
     {
       this.player_computer = 1 - this.player_computer;
+      this.init_game();
+      if(this.nr_players == 1 && this.player_computer == this.player) 
+        this.playSuggest();
       this.saveCurrentGame();
     }
+    this.logMsg = "";
   }
 
   playUndo()
@@ -223,13 +293,14 @@ export class HomePage
       this.board[this.moves[this.move-1]] = '';
       this.move--;
       this.player = 2 - this.player;
-      if(this.player_computer == 1)
+      if(this.nr_players == 1)
       {
         this.board[this.moves[this.move-1]] = '';
         this.move--;     
         this.player = 2 - this.player;   
       }
       this.saveCurrentGame();
+      this.logMsg = "";
     }
   }
 
@@ -248,6 +319,11 @@ export class HomePage
     this.board[move] = (this.player == 1) ? 'X' : '0';
     this.moves[this.move] = move;
     this.move++;
+    var win = this.checkWinner(this.player);
+    if(win >= 0)
+    {
+      this.showWinner(win);
+    }
     this.player = 1 - this.player;
     this.saveCurrentGame();
   }
@@ -260,19 +336,19 @@ export class HomePage
       this.board[button] = (this.player == 1) ? 'X' : '0';
       this.moves[this.move] = button;
       this.move++;      
-    }
-    win = this.checkWinner(this.player);
-    if(win >= 0)
-    {
-      this.showWinner(win);
-    }
-    else
-    {
-      this.player = 1 - this.player;
-      if(this.nr_players == 1)
-        this.playSuggest();
+      win = this.checkWinner(this.player);
+      if(win >= 0)
+      {
+        this.showWinner(win);
+      }
       else
-        this.saveCurrentGame();
+      {
+        this.player = 1 - this.player;
+        if(this.nr_players == 1)
+          this.playSuggest();
+        else
+          this.saveCurrentGame();
+      }
     }
   }  
 
@@ -301,17 +377,36 @@ export class HomePage
 
   showWinner(target: number)
   {
-    this.targets.forEach(element => {
-      if(this.board[element[0]-1] == 'X' && this.board[element[1]-1] == 'X' && this.board[element[2]-1] == 'X')
-        return 1;
-      else if(this.board[element[0]-1] == '0' && this.board[element[1]-1] == '0' && this.board[element[2]-1] == '0')
-        return 0;
-    });
-    return -1;
+    var element = this.targets[target];
+    if(this.player==1)
+    {
+      this.board[element[0]-1] = '(X)';
+      this.board[element[1]-1] = '(X)';
+      this.board[element[2]-1] = '(X)';
+      this.statistics[this.dificulty][0] += 1;
+      this.logMsg = this.msgWinner + ": " + this.msgPlayer + " 1 (X)";
+    }
+    else
+    {
+      this.board[element[0]-1] = '(0)';
+      this.board[element[1]-1] = '(0)';
+      this.board[element[2]-1] = '(0)';
+      this.statistics[this.dificulty][1] += 1;
+      this.logMsg = this.msgWinner + ": " + this.msgPlayer + " 2 (0)";
+    }
   }
+
   toggleDifficulty(difi: number)
   {
-    this.dificulty = difi;
+    this.newGameFor = 3;
+    this.dificulty_save = difi;
+    this.ask_new_game();
+    if(this.move == 0)
+    {
+      this.dificulty = difi;
+      this.init_game();
+      this.saveCurrentGame();
+    }
   }
 }
 
