@@ -15,5 +15,7 @@
   "ARE YOU SURE TO START A NEW GAME?":"Are you sure you want to start a new game?",
   "YES" : "Yes",
   "NO"  : "No",
-  "WINNER"  : "Winner"
+  "WINNER"  : "Winner",
+  "COMPUTER" : "Computer",
+  "PLAYS WITH" : "plays with"
 }

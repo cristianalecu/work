@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import {TranslateService} from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
+import { PlayerType, tPlayer } from '../statistics/statistics';
 
 @Component({
   selector: 'page-home',
@@ -16,20 +17,12 @@ export class HomePage
    *  3 - Extpert    */ 
   dificulty: number; 
   dificulty_save: number;
-  
-  /** 1 - Single player   
-   *  2 - Two players     */
-  nr_players: number;
-
 
   /** Player who has to move   
    *  0 - Player 2 (0)         
    *  1 - Player 1 (X)         */
   player: number;
   winner: number; // player that win current game
-  player1name: string;
-  player2name: string;
-  computername: string;
 
   /** 1 if player 1 plays with X     
    *  0 if player 1 plays with 0   
@@ -38,10 +31,6 @@ export class HomePage
 
   /** 1 if player 1 plays with X or 0 always   */
   playwithalways: number;
-
-  /** 0 - Player 2 (0)  
-   *  1 - Player 1 (X)    */
-  player_computer: number;
 
   /** 1 - Restart           
    *  2 - Change Players    
@@ -57,7 +46,6 @@ export class HomePage
   moves: Array<number>;
   board: Array<string>;
   targets: Array<Array<number>>;
-  statistics: Array<Array<number>>;
 
   translater: TranslateService;
   userLang: string;
@@ -69,16 +57,20 @@ export class HomePage
   msgNo: string;
   msgSinglePlayer: string;
   msgTwoPlayers: string;
-  msgPlayers: string;
   msgPlayer: string;
   msgWinner: string;
+  msgComputer: string;
+  msgPlaysWith: string;
+
+  // LIST OF PLAYERS
+  nrPlayers: number;
+  player_user: number;
+  player_oponent: number;
+  players: Array<tPlayer>;
+  scores: Array<Array<number>>;
 
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController) 
   {
-      this.dificulty = 0;
-      this.nr_players = 1;
-      this.player_computer = 1;
-      this.init_game();
       this.targets= [[1, 5, 9]
                     ,[3, 5, 7]
                     ,[1, 2, 3]
@@ -87,16 +79,23 @@ export class HomePage
                     ,[1, 4, 7]
                     ,[2, 5, 8]
                     ,[3, 6, 9]];
-      this.statistics=[[0,0],[0,0],[0,0],[0,0]
-                      ,[0,0],[0,0],[0,0],[0,0]];
-      this.translater = translate;
-      this.userLang = 'en';
+      this.translater = translate;    
+      this.userLang = 'en';  
+      this.init_game();
+
+      this.dificulty = 0;    
       this.winner = -1;
-      this.player1name = "";
-      this.player2name = "";
-      this.computername = "";
       this.playwith = -1;
       this.playwithalways = -1;
+
+      this.nrPlayers = 2;
+      this.player_user = 1;    //current user - Player 1
+      this.player_oponent = 0; //Computer
+      this.nrPlayers = 2;
+      this.players = [];
+      this.players[0] = {name:"", id:0, pType: PlayerType.Computer, email:""};    
+      this.players[1] = {name:"", id:1, pType: PlayerType.User, email:""};
+      this.scores=[[0,0],[0,0]];
 
       this.getCurrentGame();
       this.checkLanguage();      
@@ -111,15 +110,14 @@ export class HomePage
       this.board = ['', '', '', '', '', '', '', '', ''];
   }
 
- //** return 0 if is new or successfully reset */
   ask_new_game()
   {
-    this.msgPlayers = (this.nr_players == 1) ? this.msgSinglePlayer : this.msgTwoPlayers;
     if(this.move != 0)
     {
       this.presentConfirm();
     }
   }
+
   presentConfirm() {
     let alert = this.alertCtrl.create({
       title: this.msgNewGame,
@@ -145,27 +143,18 @@ export class HomePage
     });
     alert.present();
   }
+
   getCurrentGame()
   {
     var index;
     if(localStorage.getItem('dificulty') != null) 
       this.dificulty = parseInt(localStorage.getItem('dificulty'));
-    if(localStorage.getItem('nr_players') != null) 
-      this.nr_players = parseInt(localStorage.getItem('nr_players'));
     if(localStorage.getItem('player') != null) 
       this.player = parseInt(localStorage.getItem('player'));
     if(localStorage.getItem('move') != null) 
       this.move = parseInt(localStorage.getItem('move'));
-    if(localStorage.getItem('player_computer') != null) 
-      this.player_computer = parseInt(localStorage.getItem('player_computer'));
     if(localStorage.getItem('winner') != null) 
       this.winner = parseInt(localStorage.getItem('winner'));
-    if(localStorage.getItem('player1name') != null) 
-      this.player1name = localStorage.getItem('player1name');
-    if(localStorage.getItem('player2name') != null) 
-      this.player2name = localStorage.getItem('player2name');
-    if(localStorage.getItem('computername') != null) 
-      this.computername = localStorage.getItem('computername');
     if(this.move > 0)
     {
       for (index = 0; index < this.move; index++)
@@ -177,35 +166,23 @@ export class HomePage
           this.board[this.moves[index]] = '0';
       }
     }
-    for (index = 0; index < 8; index++)
-      if(localStorage.getItem('statistics0'+index) != null)
-      {
-        this.statistics[index][0] = parseInt(localStorage.getItem('statistics0'+index));
-        this.statistics[index][1] = parseInt(localStorage.getItem('statistics1'+index));
-      }
   }
 
   saveCurrentGame()
   {
     var index;
     localStorage.setItem('dificulty', ''+this.dificulty);
-    localStorage.setItem('nr_players', ''+this.nr_players);
     localStorage.setItem('player', ''+this.player);
     localStorage.setItem('move', ''+this.move);
-    localStorage.setItem('player_computer', ''+this.player_computer);
+    localStorage.setItem('player_user', ''+this.player_user);
+    localStorage.setItem('player_oponent', ''+this.player_oponent);
     localStorage.setItem('winner', ''+this.winner);
-    localStorage.setItem('player1name', ''+this.player1name);
-    localStorage.setItem('player2name', ''+this.player2name);
+
     if(this.move > 0)
     {
       for (index = 0; index < this.move; index++) 
         localStorage.setItem('moves'+index, ''+this.moves[index]);
     }
-    for (index = 0; index < 8; index++)
-      {
-        localStorage.setItem('statistics0'+index, ''+this.statistics[index][0]);
-        localStorage.setItem('statistics1'+index, ''+this.statistics[index][1]);
-      }
   }
 
   checkLanguage()
@@ -218,7 +195,10 @@ export class HomePage
       return;
  
     this.userLang = lang;
-    this.msgPlayers = (this.nr_players == 1) ? "SINGLE PLAYER" : "TWO PLAYERS";
+    this.msgPlayer = "Player";
+    this.msgSinglePlayer = "Single player";
+    this.msgTwoPlayers = "Two players";
+    this.msgComputer = "Computer";
 
    this.translater.setDefaultLang('en');
    this.translater.use(this.userLang);
@@ -237,13 +217,9 @@ export class HomePage
     });
     this.translater.get('SINGLE PLAYER').subscribe(  value => {
       this.msgSinglePlayer = value; 
-      if(this.nr_players == 1)
-        this.msgPlayers = value; 
     });
     this.translater.get('TWO PLAYERS').subscribe(   value => {
       this.msgTwoPlayers = value; 
-      if(this.nr_players == 2)
-        this.msgPlayers = value; 
     });
     this.translater.get('WINNER').subscribe(   value => {
       this.msgWinner = value; 
@@ -259,8 +235,7 @@ export class HomePage
     this.ask_new_game();
     if(this.move == 0)
     {
-      this.nr_players = 2 - this.nr_players;
-      this.player_computer = 0;
+      this.player_oponent = 0;
       this.init_game();
       this.saveCurrentGame();
     }
@@ -268,7 +243,18 @@ export class HomePage
 
   getPlayers()
   {
-    return (this.nr_players == 1) ? this.msgSinglePlayer : this.msgTwoPlayers;
+    return (this.player_oponent) ? this.msgSinglePlayer : this.msgTwoPlayers;
+  }
+
+  getPlayerToMove()
+  {
+    var player: tPlayer;
+    if(this.player == 1)
+      player = this.players[this.player_user];
+    else
+      player = this.players[this.player_oponent];
+    
+    
   }
 
   toggleNewGame()
@@ -277,9 +263,10 @@ export class HomePage
     this.ask_new_game();
     if(this.move == 0)
     {
-      this.player_computer = 1 - this.player_computer;
+      if(this.playwithalways != 1)
+        this.playwith = (this.playwith == 1) ? 0 : 1;
       this.init_game();
-      if(this.nr_players == 1 && this.player_computer == this.player) 
+      if(this.player_oponent == 0 && this.playwith == this.player) 
         this.playSuggest();
       this.saveCurrentGame();
     }
@@ -288,12 +275,17 @@ export class HomePage
 
   playUndo()
   {
+    var player: tPlayer;
     if(this.move != 0)
     {
       this.board[this.moves[this.move-1]] = '';
       this.move--;
       this.player = 2 - this.player;
-      if(this.nr_players == 1)
+      if(this.player == 1)
+        player = this.players[this.player_user];
+      else
+        player = this.players[this.player_oponent];
+      if(player.pType == PlayerType.Computer)
       {
         this.board[this.moves[this.move-1]] = '';
         this.move--;     
@@ -331,6 +323,8 @@ export class HomePage
   playMove(button: number)
   {
     var win:number;
+    var player: tPlayer;
+    
     if(this.board[button] == '')
     {
       this.board[button] = (this.player == 1) ? 'X' : '0';
@@ -344,7 +338,11 @@ export class HomePage
       else
       {
         this.player = 1 - this.player;
-        if(this.nr_players == 1)
+        if(this.player == 1)
+          player = this.players[this.player_user];
+        else
+          player = this.players[this.player_oponent];
+        if(player.pType == PlayerType.Computer)
           this.playSuggest();
         else
           this.saveCurrentGame();
@@ -383,7 +381,7 @@ export class HomePage
       this.board[element[0]-1] = '(X)';
       this.board[element[1]-1] = '(X)';
       this.board[element[2]-1] = '(X)';
-      this.statistics[this.dificulty][0] += 1;
+      //this.statistics[this.dificulty][0] += 1;
       this.logMsg = this.msgWinner + ": " + this.msgPlayer + " 1 (X)";
     }
     else
@@ -391,7 +389,7 @@ export class HomePage
       this.board[element[0]-1] = '(0)';
       this.board[element[1]-1] = '(0)';
       this.board[element[2]-1] = '(0)';
-      this.statistics[this.dificulty][1] += 1;
+      //this.statistics[this.dificulty][1] += 1;
       this.logMsg = this.msgWinner + ": " + this.msgPlayer + " 2 (0)";
     }
   }

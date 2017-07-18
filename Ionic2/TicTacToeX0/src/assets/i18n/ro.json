@@ -15,6 +15,8 @@
   "ARE YOU SURE TO START A NEW GAME?":"Ești sigur că vrei să începi un joc nou?",
   "YES" : "Da",
   "NO"  : "Nu",
-  "WINNER"  : "Câștigător"
+  "WINNER"  : "Câștigător",
+  "COMPUTER" : "Calculator",
+  "PLAYS WITH" : "joacă cu"
 }
 

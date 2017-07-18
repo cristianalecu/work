@@ -32,16 +32,14 @@
     </div>
   </div>  
     <p>{{ 'HAS TO MOVE' | translate }}: 
-      <b>{{ 'PLAYER' | translate }} {{2-player}}</b> <u>({{player==1 ? 'X' : '0'}})</u>
+      <b>{{ getPlayerToMove() }}</b></u>
     </p>
     <div class="button-bar">
       <button  ion-button (click)="playUndo()">{{ 'UNDO' | translate }}</button>
       <button  ion-button (click)="playSuggest()">{{ 'SUGGEST' | translate }}</button>
     </div>
     <p>
-      {{ 'SCORE' | translate }}: {{ 'PLAYER' | translate }} 1
-      <b>{{statistics[dificulty][0]+statistics[dificulty+4][0]}}</b> - {{ 'PLAYER' | translate }} 2
-      <b>{{statistics[dificulty][1]+statistics[dificulty+4][1]}}</b> 
+      {{ 'SCORE' | translate }}: <b>{{ getScore() }}</b> 
     </p>
     <div class="button-bar">
       <button ion-button (click)="togglePlayers()">{{ getPlayers() }}</button>
