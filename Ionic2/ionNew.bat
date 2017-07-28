@@ -9,8 +9,8 @@ set PROXY=http://192.168.1.29:8080
 rem ionic start myApp blank   --v2
 rem ionic start myApp tabs   --v2
 rem ionic start ionDebugMenu sidemenu --v2
-ionic start TicTacToeX0 sidemenu --v2
+ionic start MoaraTintar sidemenu --v2
 
-cd TicTacToeX0
+cd MoaraTintar
 
 ionic serve

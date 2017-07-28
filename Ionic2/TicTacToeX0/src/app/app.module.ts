@@ -7,8 +7,9 @@ import { Http, HttpModule } from '@angular/http';
 
 import { MyApp } from './app.component';
 import { HomePage } from '../pages/home/home';
-import { MultiplayerPage } from '../pages/multiplayer/multiplayer';
-import { StatisticsPage } from '../pages/statistics/statistics';
+import { SettingsPage } from '../pages/settings/settings';
+import { PlayersPage } from '../pages/players/players';
+
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -17,8 +18,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
   declarations: [
     MyApp,
     HomePage,
-    MultiplayerPage,
-    StatisticsPage
+    SettingsPage,
+    PlayersPage
   ],
   imports: [
     BrowserModule,
@@ -36,8 +37,8 @@ import { SplashScreen } from '@ionic-native/splash-screen';
   entryComponents: [
     MyApp,
     HomePage,
-    MultiplayerPage,
-    StatisticsPage
+    SettingsPage,
+    PlayersPage
   ],
   providers: [
     StatusBar,

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import {TranslateService} from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
-import { PlayerType, tPlayer } from '../statistics/statistics';
+import { PlayerType, tPlayer } from '../../classes/player';
 
 @Component({
   selector: 'page-home',
@@ -82,7 +82,7 @@ export class HomePage
                     ,[2, 5, 8]
                     ,[3, 6, 9]];
       this.translater = translate;    
-      this.userLang = 'en';  
+      this.userLang = '';  
       this.init_game();
 
       this.version = 1;
@@ -192,7 +192,8 @@ export class HomePage
       var nPoints: number;
 
       this.nrPlayers = parseInt(localStorage.getItem('nrPlayers'));
-      for (index = 0; index < this.nrPlayers; index++) {
+      for (index = 0; index < this.nrPlayers; index++) 
+      {
         usr_name = localStorage.getItem('usr_name'+index);
         usr_type = parseInt(localStorage.getItem('usr_type'+index));
         usr_id = parseInt(localStorage.getItem('usr_id'+index));
@@ -216,6 +217,12 @@ export class HomePage
             this.scores[index2][index] = nPoints;
           }
         }
+      }
+      var win = this.checkWinner(this.player);
+      if(win >= 0)
+      {
+        this.winner = this.player;
+        this.showWinner(win);
       }
     }
   }
@@ -353,7 +360,7 @@ export class HomePage
         this.playwith = (this.playwith == 1) ? 0 : 1;
       this.init_game();
       if(this.player_oponent == 0 && this.playwith != this.player) 
-        this.playSuggest();
+        this.playComputer(0);
       this.saveCurrentGame();
     }
     this.logMsg = "";
@@ -370,18 +377,30 @@ export class HomePage
     var player: tPlayer;
     if(this.move != 0)
     {
+      if(this.winner >= 0)
+        this.adjustScore(-1);
+      else
+        this.player = 1 - this.player;
+
       this.board[this.moves[this.move-1]] = '';
       this.move--;
-      this.player = 1 - this.player;
+      
       if(this.player == this.playwith)
         player = this.players[this.player_user];
       else
         player = this.players[this.player_oponent];
-      if(player.pType == PlayerType.Computer && this.winner != -1) //if player wins, the computer don't move any more
+
+      //if(player.pType == PlayerType.Computer && this.winner == -1) //if player wins, the computer don't move any more
+      if(player.pType == PlayerType.Computer)
       {
-        this.board[this.moves[this.move-1]] = '';
-        this.move--;     
-        this.player = 1 - this.player;   
+        if(this.move != 0)
+        {
+          this.board[this.moves[this.move-1]] = '';
+          this.move--;     
+          this.player = 1 - this.player;   
+        }
+        else
+          this.playComputer(0);
       }
       if(this.winner != -1)
       {
@@ -397,14 +416,45 @@ export class HomePage
 
   playSuggest()
   {
-    var move: number;
-
-    move = Math.floor((Math.random() * 10));
-    while (this.board[move] != '') 
+    var player;
+    if(this.winner == -1 && this.move < 9)
     {
+      this.playComputer(1);
+      if(this.player == this.playwith)
+        player = this.players[this.player_user];
+      else
+        player = this.players[this.player_oponent];
+
+      if(this.winner == -1 && player.pType == PlayerType.Computer)
+        this.playComputer(0);
+    }
+  }
+
+  playComputer(bIsSuggest: number)
+  {
+    if(bIsSuggest == 0)
+      this.playRandom();
+    else
+      this.playLogic();
+  }
+
+  playRandom()
+  {
+    var move: number;
+    var moves: number;
+
+    moves = 0;
+    move = Math.floor((Math.random() * 10));
+    while (this.board[move] != '' && moves < 11) 
+    {
+      moves++;
       move++;
       if(move > 9) 
         move = 0;
+    }
+    if(moves >= 11)
+    {
+      return;
     }
     
     this.board[move] = (this.player == 1) ? 'X' : '0';
@@ -415,9 +465,103 @@ export class HomePage
     {
       this.winner = this.player;
       this.showWinner(win);
+      this.adjustScore(1);
     }
-    this.player = 1 - this.player;
+    else
+      this.player = 1 - this.player;
     this.saveCurrentGame();
+  }
+
+  playLogic()
+  {                         // 0 1 2
+    var move: number;       // 3 4 5 
+    var win: number;        // 6 7 8
+
+    var mymove=(this.player == 1) ? 'X' : '0';
+    var yourmove=(this.player == 1) ? '0' : 'X';
+    move = this.hasWinningMove(this.player);
+    if(move == -1)
+    {
+      move = this.hasWinningMove(1-this.player); //cancel oponent win
+      if(move == -1)
+      {
+        if(this.board[4] == '') //take center first
+          move = 4;
+        else if (this.board[4] == mymove)
+        {
+          if(this.board[0] == '' && this.board[8] == '') //then take corners
+            move = 0;   
+          else if(this.board[2] == '' && this.board[6] == '')
+            move = 2;   
+          else if(this.board[8] == '' && this.board[0] == '') 
+            move = 8;   
+          else if(this.board[6] == '' && this.board[2] == '')
+            move = 6;   
+          else if(this.board[1] == '' && this.board[7] == '') //then take middles
+            move = 1;   
+          else if(this.board[5] == '' && this.board[3] == '')
+            move = 5;   
+          else if(this.board[7] == '' && this.board[1] == '')
+            move = 7;  
+          else if(this.board[3] == '' && this.board[5] == '')
+            move = 3;
+        }
+        else
+        {
+          if(this.board[0] == '' && ((this.board[1] != yourmove && this.board[2] != yourmove) || 
+                                     (this.board[3] != yourmove && this.board[3] != yourmove))) //take corners
+            move = 0;   
+          else if(this.board[8] == '' && ((this.board[7] != yourmove && this.board[8] != yourmove) || 
+                                          (this.board[0] != yourmove && this.board[3] != yourmove))) 
+            move = 0; 
+          else if(this.board[2] == '' && ((this.board[5] != yourmove && this.board[8] != yourmove) || 
+                                          (this.board[0] != yourmove && this.board[1] != yourmove))) 
+            move = 0; 
+          else if(this.board[6] == '' && ((this.board[7] != yourmove && this.board[8] != yourmove) || 
+                                          (this.board[0] != yourmove && this.board[3] != yourmove))) 
+            move = 0; 
+        }
+        if(move == -1)
+        {
+          for (var index = 0; index < 9; index++) 
+          { //take any remaining
+            if (this.board[index] == '')
+              move = index;
+          }
+        }
+      }
+    }
+    
+    this.board[move] = mymove
+    this.moves[this.move] = move;
+    this.move++;
+    win = this.checkWinner(this.player);
+    if(win >= 0)
+    {
+      this.winner = this.player;
+      this.showWinner(win);
+      this.adjustScore(1);
+    }
+    else
+      this.player = 1 - this.player;
+    this.saveCurrentGame();
+  }
+  
+  hasWinningMove(player: number)
+  {
+    var win;
+    for (var index = 0; index < 9; index++) 
+      {
+        if(this.board[index] == '')
+        {
+          this.board[index] = (player == 1) ? 'X' : '0';
+          win = this.checkWinner(player); //cancel oponent win
+          this.board[index] = '';
+          if(win >= 0)
+            return index;
+        }
+      }
+    return -1;
   }
 
   playMove(button: number)
@@ -435,6 +579,7 @@ export class HomePage
       {
         this.winner = this.player;
         this.showWinner(win);
+        this.adjustScore(1);
       }
       else
       {
@@ -444,7 +589,7 @@ export class HomePage
         else
           player = this.players[this.player_oponent];
         if(player.pType == PlayerType.Computer)
-          this.playSuggest();
+          this.playComputer(0);
         else
           this.saveCurrentGame();
       }
@@ -474,6 +619,14 @@ export class HomePage
     return -1;
   }
 
+  adjustScore(value: number)
+  {
+    if(this.player==this.playwith)
+      this.scores[this.player_user][this.player_oponent] += value;
+    else
+      this.scores[this.player_oponent][this.player_user] += value;
+  }
+
   showWinner(target: number)
   {
     var element = this.targets[target];
@@ -483,15 +636,9 @@ export class HomePage
       this.board[element[1]-1] = '(X)';
       this.board[element[2]-1] = '(X)';
       if(this.playwith == 1)
-      {
-        this.scores[this.player_user][this.player_oponent] += 1;
         this.logMsg = this.msgWinner + ": " + this.players[this.player_user].name + " (X)";
-      }
       else
-      {
-        this.scores[this.player_oponent][this.player_user] += 1;
         this.logMsg = this.msgWinner + ": " + this.players[this.player_oponent].name + " (X)";
-      }
     }
     else
     {
@@ -499,15 +646,9 @@ export class HomePage
       this.board[element[1]-1] = '(0)';
       this.board[element[2]-1] = '(0)';
       if(this.playwith == 1)
-      {
-        this.scores[this.player_oponent][this.player_user] += 1;
         this.logMsg = this.msgWinner + ": " + this.players[this.player_oponent].name + " (0)";
-      }
       else
-      {
-        this.scores[this.player_user][this.player_oponent] += 1;
         this.logMsg = this.msgWinner + ": " + this.players[this.player_user].name + " (0)";
-      }
     }
   }
 
