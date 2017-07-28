@@ -11,19 +11,24 @@ import { PlayerType, tPlayer } from '../../classes/player';
 
 export class HomePage 
 {
-  version: number; //version of the storage
+  /** version of the storage  */
+  version: number;
+
   /** 0 - Easy      
    *  1 - Normal     
    *  2 - Hard       
    *  3 - Extpert    */ 
   dificulty: number; 
+  /** temp for new dificulty during play  */
   dificulty_save: number;
 
   /** Player who has to move   
    *  0 - Player 2 (0)         
    *  1 - Player 1 (X)         */
   player: number;
-  winner: number; // player that win current game
+  /** player that win current game  */
+  winner: number;
+  /** if you switch on two players  */
   secondPlayer: number;
 
   /** 1 if player 1 plays with X     
@@ -46,7 +51,9 @@ export class HomePage
    *  4 5 6  
    *  7 8 9  */
   moves: Array<number>;
+  /** what is displayed to user  */
   board: Array<string>;
+  /** winning positions  */
   targets: Array<Array<number>>;
 
   translater: TranslateService;
@@ -70,6 +77,13 @@ export class HomePage
   player_oponent: number;
   players: Array<tPlayer>;
   scores: Array<Array<number>>;
+
+  /** how many moves ahead is */
+  depthSearch:number;
+  /** how many moves ahead was looking maximum */
+  maxDepthSearch;
+  /** how many moves checked in total until now */
+  checks;
 
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController) 
   {
@@ -328,6 +342,8 @@ export class HomePage
     {
       this.player_oponent = this.player_oponent ? 0 : this.secondPlayer;
       this.init_game();
+      if(this.playwith == 0)
+        this.playComputer(0);
       this.saveCurrentGame();
     }
     this.logMsg = "";
@@ -433,9 +449,25 @@ export class HomePage
   playComputer(bIsSuggest: number)
   {
     if(bIsSuggest == 0)
-      this.playRandom();
+    {                      // computer
+      if(this.dificulty < 2 && this.move < 2)
+        this.playRandom();
+      else
+      {
+        //this.playLogic();
+        this.depthSearch = 0;
+        this.maxDepthSearch = 0;
+        this.checks = 0;
+        this.playMove(this.getMinMax(this.player));
+      }
+    }
     else
-      this.playLogic();
+    {                     // sugest
+      this.depthSearch = 0;
+      this.maxDepthSearch = 0;
+      this.checks = 0;
+      this.playMove(this.getMinMax(this.player));
+    }
   }
 
   playRandom()
@@ -456,26 +488,12 @@ export class HomePage
     {
       return;
     }
-    
-    this.board[move] = (this.player == 1) ? 'X' : '0';
-    this.moves[this.move] = move;
-    this.move++;
-    var win = this.checkWinner(this.player);
-    if(win >= 0)
-    {
-      this.winner = this.player;
-      this.showWinner(win);
-      this.adjustScore(1);
-    }
-    else
-      this.player = 1 - this.player;
-    this.saveCurrentGame();
+    this.playMove(move);
   }
 
   playLogic()
-  {                         // 0 1 2
-    var move: number;       // 3 4 5 
-    var win: number;        // 6 7 8
+  {
+    var move: number;
 
     var mymove=(this.player == 1) ? 'X' : '0';
     var yourmove=(this.player == 1) ? '0' : 'X';
@@ -532,19 +550,7 @@ export class HomePage
       }
     }
     
-    this.board[move] = mymove
-    this.moves[this.move] = move;
-    this.move++;
-    win = this.checkWinner(this.player);
-    if(win >= 0)
-    {
-      this.winner = this.player;
-      this.showWinner(win);
-      this.adjustScore(1);
-    }
-    else
-      this.player = 1 - this.player;
-    this.saveCurrentGame();
+    this.playMove(move);
   }
   
   hasWinningMove(player: number)
@@ -564,15 +570,75 @@ export class HomePage
     return -1;
   }
 
-  playMove(button: number)
+  getMinMax(player: number)
+  {
+    /** Wins versus loses */
+    var score:number = -2;
+    var moveCount:number = 0; // moves checked in this loop
+    var bestScore:number = -2;
+    var bestMove:number = -1;
+
+    this.checks++;
+    if(this.depthSearch > this.maxDepthSearch)
+      this.maxDepthSearch = this.depthSearch;
+
+    if(this.depthSearch > 0)
+    {
+      score = this.EvalForWin(player); // 0 1 2
+      if(score != 0)                   // 3 4 5
+        return score;                  // 6 7 8 
+    }
+
+    for (var index = 0; index < 9; index++) 
+    {
+      if(this.board[index] == '')
+      {
+        moveCount++;
+        this.board[index] = (player == 1) ? 'X' : '0';
+        this.depthSearch++;
+        this.moves[this.move] = index;
+        this.move++;  
+        score=-this.getMinMax(1-player);
+        if(score > bestScore)
+        {
+          bestScore = score;
+          bestMove=index;
+        }
+        this.board[index] = '';
+        this.depthSearch--;
+        this.move--;
+        if(bestScore == 1)
+          break;
+      }
+    }
+    if(moveCount == 0)
+      return this.EvalForWin(player);
+
+    if(this.depthSearch > 0)
+      return bestScore;
+    else
+      return bestMove;
+  }
+
+  EvalForWin(player: number)
+  {
+    if(this.checkWinner(player) >= 0)
+      return 1;
+    else if (this.checkWinner(1-player) >= 0)
+      return -1;
+    else 
+      return 0;
+  }
+
+  playMove(move: number)
   {
     var win:number;
     var player: tPlayer;
     
-    if(this.board[button] == '' && this.winner == -1)
+    if(this.board[move] == '' && this.winner == -1)
     {
-      this.board[button] = (this.player == 1) ? 'X' : '0';
-      this.moves[this.move] = button;
+      this.board[move] = (this.player == 1) ? 'X' : '0';
+      this.moves[this.move] = move;
       this.move++;      
       win = this.checkWinner(this.player);
       if(win >= 0)
@@ -654,6 +720,7 @@ export class HomePage
 
   toggleDifficulty(difi: number)
   {
+    var player;
     this.newGameFor = 3;
     this.dificulty_save = difi;
     this.ask_new_game();
@@ -661,6 +728,8 @@ export class HomePage
     {
       this.dificulty = difi;
       this.init_game();
+      if(this.playwith == 0)
+        this.playComputer(0);
       this.saveCurrentGame();
     }
   }
