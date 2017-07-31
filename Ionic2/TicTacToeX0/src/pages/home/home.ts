@@ -76,6 +76,7 @@ export class HomePage
   player_user: number;
   player_oponent: number;
   players: Array<tPlayer>;
+  locPlayers:Array<number>;
   scores: Array<Array<number>>;
 
   /** how many moves ahead is */
@@ -105,15 +106,19 @@ export class HomePage
       this.playwith = 1;
       this.playwithalways = 0;
 
-      this.player_user = 1;    //current user - Player 1
-      this.player_oponent = 0; //Computer
+      /** current user - Player 1 */
+      this.player_user = 1; 
+      /** if you select second player */
       this.secondPlayer = 1;
+      /** Computer or second player */
+      this.player_oponent = 0; 
       this.nrPlayers = 2;
       this.players = [];
       this.players[0] = {name:"", id:0, pType: PlayerType.Computer, email:""};    
       this.players[1] = {name:"", id:1, pType: PlayerType.User, email:""};
       this.scores=[[0,0],[0,0]];
 
+      this.getSettings();
       this.getCurrentGame();
       this.checkLanguage();      
   }
@@ -161,6 +166,62 @@ export class HomePage
     alert.present();
   }
 
+  getSettings()
+  {
+    if(localStorage.getItem('playwith') != null) 
+    {
+      this.playwith = parseInt(localStorage.getItem('playwith'));
+      if(isNaN(this.playwith))
+        this.playwith = (localStorage.getItem('playwith') == 'true') ? 1 : 0;
+    }
+    if(localStorage.getItem('playwithalways') != null) 
+    {
+      this.playwithalways = parseInt(localStorage.getItem('playwithalways'));
+      if(isNaN(this.playwithalways))
+        this.playwithalways = (localStorage.getItem('playwithalways') == 'true') ? 1 : 0;
+    }
+    if(localStorage.getItem('player_user') != null) 
+      this.player_user = parseInt(localStorage.getItem('player_user'));
+    if(localStorage.getItem('player_oponent') != null) 
+      this.player_oponent = parseInt(localStorage.getItem('player_oponent'));
+    if(localStorage.getItem('secondPlayer') != null) 
+      this.secondPlayer = parseInt(localStorage.getItem('secondPlayer'));    
+
+    this.locPlayers = Array(0, this.player_user);
+    if(this.player_user != this.secondPlayer)
+      this.locPlayers[2] = this.secondPlayer;
+    if(localStorage.getItem('nrPlayers') != null) 
+    {
+      var usr_name: string;
+      var usr_type :PlayerType;
+      var usr_id: number;
+      var usr_email: string;
+      var nPoints: number;
+
+      this.nrPlayers = parseInt(localStorage.getItem('nrPlayers'));    
+      for (var index = 0; index < this.locPlayers.length; index++) 
+      {
+        usr_name = localStorage.getItem('usr_name'+this.locPlayers[index]);
+        usr_type = parseInt(localStorage.getItem('usr_type'+this.locPlayers[index]));
+        usr_id = parseInt(localStorage.getItem('usr_id'+this.locPlayers[index]));
+        usr_email = localStorage.getItem('usr_email'+this.locPlayers[index]);
+        this.players[this.locPlayers[index]] = { name: usr_name, id: usr_id, pType: usr_type, email: usr_email };
+        for (var index2 = 0; index2 < this.locPlayers.length; index2++) 
+        {
+          nPoints = parseInt(localStorage.getItem('nPoints_'+this.locPlayers[index]+"_"+this.locPlayers[index2]));
+          if(this.scores[this.locPlayers[index]] == undefined)
+              this.scores[this.locPlayers[index]] = Array();
+          this.scores[this.locPlayers[index]][this.locPlayers[index2]] = nPoints;
+
+          nPoints = parseInt(localStorage.getItem('nPoints_'+this.locPlayers[index2]+"_"+this.locPlayers[index]));
+          if(this.scores[this.locPlayers[index2]] == undefined)
+            this.scores[this.locPlayers[index2]] = Array();
+          this.scores[this.locPlayers[index2]][this.locPlayers[index]] = nPoints;
+        }
+      }
+    }
+  }
+
   getCurrentGame()
   {
     var index;
@@ -174,16 +235,6 @@ export class HomePage
       this.winner = parseInt(localStorage.getItem('winner'));
     if(localStorage.getItem('player') != null) 
       this.player = parseInt(localStorage.getItem('player'));
-    if(localStorage.getItem('playwith') != null) 
-      this.playwith = parseInt(localStorage.getItem('playwith'));
-    if(localStorage.getItem('playwithalways') != null) 
-      this.playwithalways = parseInt(localStorage.getItem('playwithalways'));
-    if(localStorage.getItem('player_user') != null) 
-      this.player_user = parseInt(localStorage.getItem('player_user'));
-    if(localStorage.getItem('player_oponent') != null) 
-      this.player_oponent = parseInt(localStorage.getItem('player_oponent'));
-    if(localStorage.getItem('secondPlayer') != null) 
-      this.secondPlayer = parseInt(localStorage.getItem('secondPlayer'));
     if(localStorage.getItem('move') != null) 
       this.move = parseInt(localStorage.getItem('move'));
     if(this.move > 0)
@@ -197,48 +248,14 @@ export class HomePage
           this.board[this.moves[index]] = '0';
       }
     }
-    if(localStorage.getItem('nrPlayers') != null) 
+
+    var win = this.checkWinner(this.player);
+    if(win >= 0)
     {
-      var usr_name: string;
-      var usr_type :PlayerType;
-      var usr_id: number;
-      var usr_email: string;
-      var nPoints: number;
-
-      this.nrPlayers = parseInt(localStorage.getItem('nrPlayers'));
-      for (index = 0; index < this.nrPlayers; index++) 
-      {
-        usr_name = localStorage.getItem('usr_name'+index);
-        usr_type = parseInt(localStorage.getItem('usr_type'+index));
-        usr_id = parseInt(localStorage.getItem('usr_id'+index));
-        usr_email = localStorage.getItem('usr_email'+index);
-        if(! isNaN(usr_id))
-          this.players[index] = { name: usr_name, id: usr_id, pType: usr_type, email: usr_email };
-        for (var index2 = 0; index2 < this.nrPlayers; index2++) {
-          nPoints = parseInt(localStorage.getItem('nPoints_'+index+"_"+index2));
-          if(! isNaN(nPoints))
-          {
-            if(this.scores[index] == undefined)
-              this.scores[index] = Array();
-            this.scores[index][index2] = nPoints;
-          }
-
-          if(! isNaN(nPoints))
-          {
-            nPoints = parseInt(localStorage.getItem('nPoints_'+index2+"_"+index));
-            if(this.scores[index2] == undefined)
-              this.scores[index2] = Array();
-            this.scores[index2][index] = nPoints;
-          }
-        }
-      }
-      var win = this.checkWinner(this.player);
-      if(win >= 0)
-      {
-        this.winner = this.player;
-        this.showWinner(win);
-      }
+      this.winner = this.player;
+      this.showWinner(win);
     }
+    
   }
 
   saveCurrentGame()
@@ -247,11 +264,6 @@ export class HomePage
     localStorage.setItem('version', ''+this.version);
     localStorage.setItem('dificulty', ''+this.dificulty);
     localStorage.setItem('winner', ''+this.winner);
-    localStorage.setItem('playwith', ''+this.playwith);
-    localStorage.setItem('playwithalways', ''+this.playwithalways);
-    localStorage.setItem('player_user', ''+this.player_user);
-    localStorage.setItem('player_oponent', ''+this.player_oponent);
-    localStorage.setItem('secondPlayer', ''+this.secondPlayer);
     localStorage.setItem('player', ''+this.player);
     localStorage.setItem('move', ''+this.move);
     if(this.move > 0)
@@ -259,18 +271,31 @@ export class HomePage
       for (index = 0; index < this.move; index++) 
         localStorage.setItem('moves'+index, ''+this.moves[index]);
     }
-    localStorage.setItem('nrPlayers', ''+this.nrPlayers);
-    for (index = 0; index < this.nrPlayers; index++) 
+    if(this.nrPlayers == 2)
     {
-      localStorage.setItem('usr_name'+index, ''+this.players[index].name);
-      localStorage.setItem('usr_id'+index, ''+this.players[index].id);
-      localStorage.setItem('usr_type'+index, ''+this.players[index].pType);
-      localStorage.setItem('usr_email'+index, ''+this.players[index].email);
-      for (index2 = 0; index2 < this.nrPlayers; index2++) 
+      localStorage.setItem('playwith', ''+this.playwith);
+      localStorage.setItem('playwithalways', ''+this.playwithalways);
+      localStorage.setItem('player_user', ''+this.player_user);
+      localStorage.setItem('player_oponent', ''+this.player_oponent);
+      localStorage.setItem('secondPlayer', ''+this.secondPlayer);
+      localStorage.setItem('nrPlayers', ''+this.nrPlayers);
+      for (index = 0; index < this.nrPlayers; index++) 
       {
-        localStorage.setItem('nPoints_'+index+"_"+index2, ''+this.scores[index][index2]);
-        localStorage.setItem('nPoints_'+index2+"_"+index, ''+this.scores[index2][index]);
+        localStorage.setItem('usr_name'+index, ''+this.players[index].name);
+        localStorage.setItem('usr_id'+index, ''+this.players[index].id);
+        localStorage.setItem('usr_type'+index, ''+this.players[index].pType);
+        localStorage.setItem('usr_email'+index, ''+this.players[index].email);
+        for (index2 = 0; index2 < this.nrPlayers; index2++) 
+        {
+          localStorage.setItem('nPoints_'+index+"_"+index2, ''+this.scores[index][index2]);
+          localStorage.setItem('nPoints_'+index2+"_"+index, ''+this.scores[index2][index]);
+        }
       }
+    }
+    else
+    {
+      localStorage.setItem('nPoints_'+this.player_user+"_"+this.player_oponent, ''+this.scores[this.player_user][this.player_oponent]);
+      localStorage.setItem('nPoints_'+this.player_oponent+"_"+this.player_user, ''+this.scores[this.player_oponent][this.player_user]);
     }
   }
 
@@ -646,6 +671,7 @@ export class HomePage
         this.winner = this.player;
         this.showWinner(win);
         this.adjustScore(1);
+        this.saveCurrentGame();
       }
       else
       {
@@ -687,10 +713,11 @@ export class HomePage
 
   adjustScore(value: number)
   {
-    if(this.player==this.playwith)
-      this.scores[this.player_user][this.player_oponent] += value;
-    else
-      this.scores[this.player_oponent][this.player_user] += value;
+    if(this.player_user != this.player_oponent)
+      if(this.player==this.playwith)
+        this.scores[this.player_user][this.player_oponent] += value;
+      else
+        this.scores[this.player_oponent][this.player_user] += value;
   }
 
   showWinner(target: number)
@@ -720,7 +747,6 @@ export class HomePage
 
   toggleDifficulty(difi: number)
   {
-    var player;
     this.newGameFor = 3;
     this.dificulty_save = difi;
     this.ask_new_game();

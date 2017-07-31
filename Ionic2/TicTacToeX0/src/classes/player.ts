@@ -1,5 +1,5 @@
 export enum PlayerType 
-{ User, Computer 
+{ User, Computer, Deleted
 , LAN, Bluetooth   // for tuture use
 }
 

@@ -14,7 +14,7 @@
   "SINGLE PLAYER" : "Single player",
   "TWO PLAYERS": "Doi jucatori",
   "NEW GAME"   : "New game",
-  "ARE YOU SURE TO START A NEW GAME?":"Are you sure that you want to start a new game?",
+  "ARE YOU SURE TO START A NEW GAME?":"Are you sure you want to start a new game?",
   "YES" : "Yes",
   "NO"  : "No",
   "WINNER"  : "Winner",
@@ -23,16 +23,5 @@
   "MAIN PLAYER"  : "Main player",
   "PLAY WITH WHITE" : "Play with white",
   "ALWAYS" : "Always",
-  "OPONENT" : "Oponent",
-  "DELETE" : "Delete",
-  "ARE YOU SURE TO DELETE USER?" : "Are you sure that you want to delete the user?",
-  "ADD PLAYER" : "Add player",
-  "EDIT" : "Edit",
-  "NAME" : "Name",
-  "EMAIL" : "Email",
-  "SAVE" : "Save",
-  "WINS / LOSES" : "Win / Loses",
-  "RANKING" : "Ranking",
-  "MUST FILL NAME" : "You must fill the player name",
-  "OK" : "OK"
+  "OPONENT" : "Oponent"
 }
