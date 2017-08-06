@@ -89,7 +89,7 @@ export class PlayersPage {
       var usr_id: number;
       var usr_email: string;
       var index, index2, index3 : number;
-      var nPoints : Array<number>;
+      var nPoints : Array<number>;  // position in list , wins, loses
 
       for (index = 0; index < this.nrPlayers; index++) 
       {
@@ -99,21 +99,22 @@ export class PlayersPage {
         usr_email = localStorage.getItem('usr_email'+index);
         if(usr_type == PlayerType.User || usr_type == PlayerType.Computer)
         {
+          nPoints = Array(0,0,0);
           for (index2 = 0; index2 < this.nrPlayers; index2++) 
           {
-            nPoints = Array(0,0,0);
             nPoints[1] += parseInt(localStorage.getItem('nPoints_'+index+"_"+index2)); // victories
             nPoints[2] += parseInt(localStorage.getItem('nPoints_'+index2+"_"+index)); // loses   
           }
           index2 = 0;
-          while(index2 < index) // sorted
+          while(index2 < index) // sorted by winings
           {
-            if(this.points[index2][0] < nPoints[0])
+            if(this.points[index2][1] < nPoints[1])
             {
               for (index3 = index; index3 > index2; index3--) 
               {
                 this.players[index3] = this.players[index3-1];
                 this.points[index3] = this.points[index3-1];
+                this.points[index3][0]++;
               }
               nPoints[0]=index2;
               this.players[index2] = { name: usr_name, id: usr_id, pType: usr_type, email: usr_email };
@@ -264,12 +265,12 @@ export class PlayersPage {
       localStorage.setItem('usr_id'+this.nrPlayers, ''+this.nrPlayers);
       localStorage.setItem('usr_type'+this.nrPlayers, ''+PlayerType.User);
       localStorage.setItem('usr_email'+this.nrPlayers, ''+this.usr_email);
-      this.nrPlayers++;
       for (index2 = 0; index2 <= this.nrPlayers; index2++) 
       {
         localStorage.setItem('nPoints_'+this.nrPlayers+"_"+index2, '0');
         localStorage.setItem('nPoints_'+index2+"_"+this.nrPlayers, '0');
       }
+      this.nrPlayers++;
       localStorage.setItem('nrPlayers', ''+this.nrPlayers);
     }
     else
