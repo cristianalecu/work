@@ -4,6 +4,8 @@ import {TranslateService} from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
 import { PlayerType, tPlayer } from '../../classes/player';
 
+// style="{{visibleEdit ? 'display:inline;' : 'display:none;'}}"
+
 @Component({
   selector: 'page-players',
   templateUrl: 'players.html'
@@ -33,6 +35,7 @@ export class PlayersPage {
 
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController) 
   {
+    this.nrPlayers = 0;
     this.translater = translate;    
     this.userLang = '';
     this.players = Array();

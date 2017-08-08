@@ -1,8 +1,8 @@
 {
-    "name": "ionic-hello-world",
-    "version": "0.0.0",
-    "author": "Ionic Framework",
-    "homepage": "http://ionicframework.com/",
+    "name": "TicTacToeX0",
+    "version": "1.0.1",
+    "author": "Cristian Alecu",
+    "homepage": "http://itcomplace.ro/",
     "private": true,
     "scripts": {
         "clean": "ionic-app-scripts clean",
@@ -55,7 +55,7 @@
         "cordova-plugin-splashscreen"
     ],
     "cordovaPlatforms": [],
-    "description": "TicTacToeX0: An Ionic project",
+    "description": "TicTacToe : Play X and 0",
     "cordova": {
         "plugins": {
             "cordova-plugin-console": {},
