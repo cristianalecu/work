@@ -118,6 +118,8 @@ export class HomePage
       this.players[1] = {name:"", id:1, pType: PlayerType.User, email:""};
       this.scores=[[0,0],[0,0]];
 
+      this.msgWinner = "Winner";
+
       this.getSettings();
       this.getCurrentGame();
       this.checkLanguage();      
@@ -266,6 +268,7 @@ export class HomePage
     localStorage.setItem('winner', ''+this.winner);
     localStorage.setItem('player', ''+this.player);
     localStorage.setItem('move', ''+this.move);
+    localStorage.setItem('player_oponent', ''+this.player_oponent);
     if(this.move > 0)
     {
       for (index = 0; index < this.move; index++) 
@@ -276,7 +279,6 @@ export class HomePage
       localStorage.setItem('playwith', ''+this.playwith);
       localStorage.setItem('playwithalways', ''+this.playwithalways);
       localStorage.setItem('player_user', ''+this.player_user);
-      localStorage.setItem('player_oponent', ''+this.player_oponent);
       localStorage.setItem('secondPlayer', ''+this.secondPlayer);
       localStorage.setItem('nrPlayers', ''+this.nrPlayers);
       for (index = 0; index < this.nrPlayers; index++) 
@@ -337,6 +339,12 @@ export class HomePage
     });
     this.translater.get('WINNER').subscribe(   value => {
       this.msgWinner = value; 
+      var win = this.checkWinner(this.player);
+      if(win >= 0)
+      {
+        this.winner = this.player;
+        this.showWinner(win);
+      }
     });
     this.translater.get('PLAYER').subscribe(   value => {
       this.msgPlayer = value; 
@@ -370,13 +378,13 @@ export class HomePage
       if(this.playwith == 0)
         this.playComputer(0);
       this.saveCurrentGame();
+      this.logMsg = "";
     }
-    this.logMsg = "";
   }
 
   getPlayers()
   {
-    return (this.player_oponent == 0) ? this.msgSinglePlayer : this.msgTwoPlayers;
+    return (this.player_oponent == 0) ? this.msgTwoPlayers : this.msgSinglePlayer;
   }
 
   getPlayerToMove()
@@ -475,7 +483,9 @@ export class HomePage
   {
     if(bIsSuggest == 0)
     {                      // computer
-      if(this.dificulty < 2 && this.move < 2)
+      if(this.dificulty == 0 && this.move < 4)
+        this.playRandom();
+      else if(this.dificulty == 1 && this.move < 2)
         this.playRandom();
       else
       {
@@ -757,6 +767,7 @@ export class HomePage
       if(this.playwith == 0)
         this.playComputer(0);
       this.saveCurrentGame();
+      this.logMsg = "";
     }
   }
 }

@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
+import {TranslateService} from '@ngx-translate/core';
 
 import { HomePage } from '../pages/home/home';
 import { SettingsPage } from '../pages/settings/settings';
@@ -18,14 +19,14 @@ export class MyApp {
 
   pages: Array<{title: string, component: any}>;
 
-  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen) {
+  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen, translate: TranslateService) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Play', component: HomePage },
-      { title: 'Settings', component: SettingsPage },
-      { title: 'Players', component: PlayersPage }
+      { title: 'PLAY', component: HomePage },
+      { title: 'SETTINGS', component: SettingsPage },
+      { title: 'PLAYERS', component: PlayersPage }
     ];
 
   }

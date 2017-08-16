@@ -16,13 +16,16 @@
         </ion-option>
       </ion-select>
     </ion-item>
-    <button id="players-button9" (click)="playerAdd()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+    <button id="players-add" (click)="playerAdd()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
       {{ 'ADD PLAYER' | translate }}
     </button>
-    <button id="players-button10" (click)="playerEdit()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+    <button id="players-edit" (click)="playerEdit()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
       {{ 'EDIT' | translate }}
     </button>
-    <button id="players-button11" (click)="playerDelete()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+    <button id="players-reset" (click)="playerReset()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+      {{ 'RESET' | translate }}
+    </button>
+    <button id="players-delete" (click)="playerDelete()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
       {{ 'DELETE' | translate }}
     </button>
   </form>

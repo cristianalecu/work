@@ -26,8 +26,10 @@ export class PlayersPage {
   addUser = false;
 
   msgDelete: string;
+  msgReset: string;
   msgSave: string;
-  msgAreYouSure: string;
+  msgAreYouSureDelete: string;
+  msgAreYouSureReset: string;
   msgMustFillName: string;
   msgYes: string;
   msgNo: string;
@@ -47,7 +49,7 @@ export class PlayersPage {
   presentConfirm() {
     let alert = this.alertCtrl.create({
       title: this.msgDelete,
-      message: this.msgAreYouSure,
+      message: this.msgAreYouSureDelete,
       buttons: [
         {
           text: this.msgNo,
@@ -67,6 +69,30 @@ export class PlayersPage {
     });
     alert.present();
   }
+  presentReset() {
+    let alert = this.alertCtrl.create({
+      title: this.msgReset,
+      message: this.msgAreYouSureReset,
+      buttons: [
+        {
+          text: this.msgNo,
+          role: 'cancel',
+          handler: () => {
+            console.log('Cancel clicked');
+          }
+        },
+        {
+          text: this.msgYes,
+          handler: () => {
+            this.player_user_old = -1;
+            this.playerReset();
+          }
+        }
+      ]
+    });
+    alert.present();
+  }
+
   presentInputError() {
     let alert = this.alertCtrl.create({
       title: this.msgSave,
@@ -82,6 +108,7 @@ export class PlayersPage {
     });
     alert.present();
   }
+
   getDefaults(){
     this.nrPlayers = parseInt(localStorage.getItem('nrPlayers'));
     this.player_user = parseInt(localStorage.getItem('player_user'));
@@ -93,6 +120,9 @@ export class PlayersPage {
       var usr_email: string;
       var index, index2, index3 : number;
       var nPoints : Array<number>;  // position in list , wins, loses
+
+      this.points = Array();
+      this.players = Array();
 
       for (index = 0; index < this.nrPlayers; index++) 
       {
@@ -111,7 +141,11 @@ export class PlayersPage {
           index2 = 0;
           while(index2 < index) // sorted by winings
           {
-            if(this.points[index2][1] < nPoints[1])
+            if(this.points[index2]===undefined)
+            {
+              //do nothing
+            }
+            else if(this.points[index2][1] < nPoints[1])
             {
               for (index3 = index; index3 > index2; index3--) 
               {
@@ -128,11 +162,14 @@ export class PlayersPage {
           }
           if(index2 == index)  //no bigger one found
           {
+            index2=this.players.length;
             nPoints[0]=index2;
             this.players[index2] = { name: usr_name, id: usr_id, pType: usr_type, email: usr_email };
             this.points[index2] = nPoints;
           }
           this.player_index = index2;
+          this.player_user = this.players[this.player_index].id;
+          this.player_user_old = this.players[this.player_index].id;
           this.usr_name = this.players[this.player_index].name;
           this.usr_email = this.players[this.player_index].email;
           this.usr_points = this.points[this.player_index][1] + " / " + this.points[this.player_index][2]
@@ -159,6 +196,9 @@ export class PlayersPage {
 
    this.translater.get('DELETE').subscribe(   value => {
       this.msgDelete = value; 
+    }); 
+    this.translater.get('RESET').subscribe(   value => {
+      this.msgReset = value; 
     });  
    this.translater.get('SAVE').subscribe(   value => {
       this.msgSave = value; 
@@ -166,9 +206,12 @@ export class PlayersPage {
    this.translater.get('MUST FILL NAME').subscribe(   value => {
       this.msgMustFillName = value; 
     }); 
-   this.translater.get('"ARE YOU SURE TO DELETE USER?').subscribe(  value => {
-      this.msgAreYouSure = value; 
+   this.translater.get('ARE YOU SURE TO DELETE USER?').subscribe(  value => {
+      this.msgAreYouSureDelete = value; 
     });  
+   this.translater.get('ARE YOU SURE TO RESET SCORE?').subscribe(  value => {
+      this.msgAreYouSureReset = value; 
+    }); 
    this.translater.get('YES').subscribe(   value => {
       this.msgYes = value; 
     }); 
@@ -226,10 +269,29 @@ export class PlayersPage {
     }
   }
   
-  playerDelete()
+  playerReset()
   {
     var index2;
     if(this.player_user >= 0 )
+    {
+      if(this.player_user == this.player_user_old)
+        this.presentReset();
+      else
+      {
+        for (index2 = 0; index2 <= this.nrPlayers; index2++) 
+        {
+          localStorage.setItem('nPoints_'+this.player_user+"_"+index2, '0');
+          localStorage.setItem('nPoints_'+index2+"_"+this.player_user, '0');
+        }
+        this.getDefaults();
+      }
+    }
+  }
+  
+  playerDelete()
+  {
+    var index2;
+    if(this.player_user > 1 )
     {
       if(this.player_user == this.player_user_old)
         this.presentConfirm();
@@ -241,6 +303,17 @@ export class PlayersPage {
         {
           localStorage.setItem('nPoints_'+this.player_user+"_"+index2, '0');
           localStorage.setItem('nPoints_'+index2+"_"+this.player_user, '0');
+        }
+        var plu = parseInt(localStorage.getItem('player_user'));
+        var plo = parseInt(localStorage.getItem('player_oponent'));
+        if(plu == this.player_user)
+        {
+          localStorage.setItem('player_user', "1");          
+          if(plo == this.player_user)
+          {
+            localStorage.setItem('player_oponent', "1");          
+          }
+          this.forceNewGame();
         }
         this.getDefaults();
       }

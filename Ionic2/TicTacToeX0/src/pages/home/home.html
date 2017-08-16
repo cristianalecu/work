@@ -14,7 +14,7 @@
     <button ion-button small (click)="toggleDifficulty(2)" [color]="dificulty == 2 ? 'light' : 'primary'">{{ 'HARD' | translate }}</button>
     <button ion-button small (click)="toggleDifficulty(3)" [color]="dificulty == 3 ? 'light' : 'primary'">{{ 'EXPERT' | translate }}</button>
   </div>
-  <div id="playtable" class="buttons-table">
+  <div id="playtable" class="buttons-table" float-left>
     <div id="row1">
       <button ion-button outline icon-left large (click)="playMove(0)">{{board[0]}}</button>
       <button ion-button outline icon-left large (click)="playMove(1)">{{board[1]}}</button>
@@ -31,19 +31,21 @@
       <button ion-button outline icon-left large (click)="playMove(8)">{{board[8]}}</button>
     </div>
   </div>  
+  <div id="playbuttons"  float-left>
     <p>{{ 'HAS TO MOVE' | translate }}: 
       <b>{{ getPlayerToMove() }}</b>
     </p>
     <div class="button-bar">
-      <button  ion-button (click)="playUndo()">{{ 'UNDO' | translate }}</button>
-      <button  ion-button (click)="playSuggest()">{{ 'SUGGEST' | translate }}</button>
+      <button  ion-button round (click)="playUndo()">{{ 'UNDO' | translate }}</button>
+      <button  ion-button round (click)="playSuggest()">{{ 'SUGGEST' | translate }}</button>
     </div>
     <p>
       {{ 'SCORE' | translate }}: <b>{{ getScore() }}</b> 
     </p>
     <div class="button-bar">
-      <button ion-button (click)="togglePlayers()">{{ getPlayers() }}</button>
-      <button ion-button (click)="toggleNewGame()">{{ 'NEW GAME' | translate }}</button>
+      <button ion-button round (click)="togglePlayers()">{{ getPlayers() }}</button>
+      <button ion-button round (click)="toggleNewGame()">{{ 'NEW GAME' | translate }}</button>
     </div>
-    {{logMsg}}
+    <p>{{logMsg}}</p>
+  </div>
 </ion-content>
