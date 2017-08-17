@@ -2,7 +2,7 @@
     "name": "TicTacToeX0",
     "version": "1.0.1",
     "author": "Cristian Alecu",
-    "homepage": "http://itcomplace.ro/",
+    "homepage": "http://agenda.itcomplace.ro",
     "private": true,
     "scripts": {
         "clean": "ionic-app-scripts clean",

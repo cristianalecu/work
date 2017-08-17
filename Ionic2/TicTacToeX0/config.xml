@@ -2,7 +2,7 @@
 <widget id="ro.itcomplace.tictactoex0100001" version="1.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>TicTacToeX0</name>
     <description>Tic Tac Toe X0</description>
-    <author email="admin@itcomplace.ro" href="http://itcomplace.ro/">Crisitian Alecu</author>
+    <author email="admin@itcomplace.ro" href="http://agenda.itcomplace.ro">Crisitian Alecu</author>
     <content src="index.html" />
     <access origin="*" />
     <allow-navigation href="http://ionic.local/*" />
