@@ -1,0 +1,21 @@
+page-play {
+
+.board-table{
+  display: inline-table;
+  max-width: 224px;
+}
+
+.board-table .board-row {
+  display: inline-table;
+  min-width: 224px;
+  max-height: 32px;
+}
+
+.board-table .board-row img {
+  max-width: 32px;
+  max-height: 32px;
+  margin-bottom: -5px;
+}
+
+}
+

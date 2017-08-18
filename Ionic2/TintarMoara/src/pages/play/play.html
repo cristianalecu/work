@@ -1,0 +1,58 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{ 'PLAY' | translate }}</ion-title>
+
+
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div id="dificulty" class="button-bar">
+    <button ion-button small (click)="toggleDifficulty(0)" [color]="dificulty == 0 ? 'light' : 'primary'">{{ 'EASY' | translate }}</button>
+    <button ion-button small (click)="toggleDifficulty(1)" [color]="dificulty == 1 ? 'light' : 'primary'">{{ 'NORMAL' | translate }}</button>
+    <button ion-button small (click)="toggleDifficulty(2)" [color]="dificulty == 2 ? 'light' : 'primary'">{{ 'HARD' | translate }}</button>
+    <button ion-button small (click)="toggleDifficulty(3)" [color]="dificulty == 3 ? 'light' : 'primary'">{{ 'EXPERT' | translate }}</button>
+  </div>
+  <div id="playtable" class="board-table" float-left>
+    <div class="board-row">
+      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,1)"/>
+      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,1)"/>
+      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,2)"/>
+      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,2)"/>
+    </div>
+    <div class="board-row">
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+    </div>
+    <div class="board-row">
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+      <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
+    </div>
+  </div>  
+  <div id="playbuttons"  float-left>
+    <p>{{ 'HAS TO MOVE' | translate }}: 
+      <b>{{ getPlayerToMove() }}</b>
+    </p>
+    <div class="button-bar">
+      <button  ion-button small round (click)="playUndo()">{{ 'UNDO' | translate }}</button>
+      <button  ion-button small round (click)="playSuggest()">{{ 'SUGGEST' | translate }}</button>
+    </div>
+    <p>
+      {{ 'SCORE' | translate }}: <b>{{ getScore() }}</b> 
+    </p>
+    <div class="button-bar">
+      <button ion-button small round (click)="togglePlayers()">{{ getPlayers() }}</button>
+      <button ion-button small round (click)="toggleNewGame()">{{ 'NEW GAME' | translate }}</button>
+    </div>
+    <p>{{logMsg}}</p>
+  </div>
+</ion-content>
