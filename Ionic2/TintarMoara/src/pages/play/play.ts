@@ -14,8 +14,6 @@ export class PlayPage
   /** version of the storage  */
   version: number;
 
-  showOutborderline: Array<number>;
-  boardImages: Array<Array<string>>;
   /** 0 - Easy      
    *  1 - Normal     
    *  2 - Hard       
@@ -25,21 +23,24 @@ export class PlayPage
   dificulty_save: number;
 
   /** Player who has to move   
-   *  0 - Player 2 (0)         
-   *  1 - Player 1 (X)         */
+   *  0 - Black player             
+   *  1 - White player         */
   player: number;
   /** player that win current game  */
   winner: number;
   /** if you switch on two players  */
   secondPlayer: number;
 
-  /** 1 if player 1 plays with X     
-   *  0 if player 1 plays with 0   
+  /** 1 if I play with white     
+   *  0 if I play with black   
    *  -1 does not matter           */
   playwith: number;
 
-  /** 1 if player 1 plays with X or 0 always   */
+  /** 1 if I play with white or black always   */
   playwithalways: number;
+
+  piecesToUse: Array<number> = [9, 9];  //player and oponent
+  piecesTaken: Array<number> = [0, 0];
 
   /** 1 - Restart           
    *  2 - Change Players    
@@ -49,14 +50,80 @@ export class PlayPage
   /** Move that has to be made - 0 based */
   move: number;    
 
-  /** 1 2 3  
-   *  4 5 6  
-   *  7 8 9  */
-  moves: Array<number>;
-  /** what is displayed to user  */
-  board: Array<string>;
+  /** Processing board table, not yet displayed  
+   *   0 -- --  1 -- --  2  
+   *  ||  3 --  4 --  5 ||    
+   *  || ||  6  7  8 || ||    
+   *   9 10 11    12 13 14    
+   *  || || 15 16 17 || ||    
+   *  || 18 -- 19 -- 20 ||    
+   *  21 -- -- 22 -- -- 23      */
+  board: Array<number> = new Array(24);
+  /** Processing board table, not yet displayed  
+   *  01 -- -- 04 -- -- 07  
+   *  || 09 -- 11 -- 13 ||    
+   *  || || 17 18 19 || ||    
+   *  22 23 24    26 27 28    
+   *  || || 31 32 33 || ||    
+   *  || 37 -- 39 -- 41 ||    
+   *  43 -- -- 46 -- -- 49      */
+  board_map: Array<number> =[1, 4, 7, 9, 11, 13, 17, 18, 19, 22, 23, 24, 26, 27, 28, 31, 32, 33, 37, 39, 41, 43, 46, 49];
+  /** better view in debug for the table with pieces */
+  board_table: Array<Array<string>> = new Array(7);
+  /** better view in debug for the table with order of moves */
+  board_table2: Array<Array<string>> = new Array(7);
+
+  /** what the user see  */
+  board_show: Array<string> = new Array(49);
+  /** list of moves          
+   *  - Odds for white player    
+   *  - Evens for black player   */
+  moves: Array<Array<number>> = new Array();
+  /** all possible moves - moving from 24 is placing a new piece on table */
+  moves_allowed: Array<Array<number>> = [
+    [1, 9],     // moves from 0 
+    [0, 2, 4],  // moves from 1
+    [1, 14],    // etc.
+    [4, 10],
+    [1, 3, 5, 7],
+    [4, 13],
+    [7, 11],
+    [4, 6, 8],
+    [7, 12],
+    [0, 10, 21],
+    [3, 9, 11, 18], // moves from 10
+    [6, 10, 15],
+    [8, 13, 17],
+    [5, 12 ,14, 20],
+    [2, 13, 23],
+    [11, 16],
+    [15, 17, 19],
+    [12, 16],
+    [10, 19],
+    [16, 18,20, 22],
+    [13, 19],       // moves from 10
+    [9, 22],
+    [19, 21, 23],
+    [14, 22],
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18,19,20,21,22,23] //moves from outside pplace on board
+  ];
   /** winning positions  */
-  targets: Array<Array<number>>;
+  targets: Array<Array<number>> = [[1, 4, 7],
+                                   [9, 11, 13],
+                                   [17, 18, 19],
+                                   [22, 23, 24],
+                                   [26, 27, 28],
+                                   [31, 32, 33],
+                                   [37, 39, 42],
+                                   [43, 46, 49],
+                                   [1, 22, 43],
+                                   [9, 23, 37],
+                                   [17, 24, 31],
+                                   [4, 11, 18],
+                                   [32, 39, 46],
+                                   [19, 26, 33],
+                                   [13, 27, 41],
+                                   [7, 28, 49]];
 
   translater: TranslateService;
   userLang: string;
@@ -90,15 +157,14 @@ export class PlayPage
 
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController) 
   {
-    this.showOutborderline = [1,1,1,1];
-    this.boardImages = Array();
-    for (var index = -1; index < 10; index++) {
-      this.boardImages[index] = Array();
-      for (var index2 = 1; index2 <= 7; index2++) {
-        this.boardImages[index][index2] = "assets/img/place2N.jpg";
-      }
-      
+    var index = 0;
+
+    for (index = 0; index < this.board_table.length; index++)
+    {
+      this.board_table[index] = new Array(7);
+      this.board_table2[index] = new Array(7);
     }
+
       this.targets= [[1, 5, 9]
                     ,[3, 5, 7]
                     ,[1, 2, 3]
@@ -107,6 +173,15 @@ export class PlayPage
                     ,[1, 4, 7]
                     ,[2, 5, 8]
                     ,[3, 6, 9]];
+      this.moves_allowed= [[1, 5, 9]
+                    ,[3, 5, 7]
+                    ,[1, 2, 3]
+                    ,[4, 5, 6]
+                    ,[7, 8, 9]
+                    ,[1, 4, 7]
+                    ,[2, 5, 8]
+                    ,[3, 6, 9]];
+
       this.translater = translate;    
       this.userLang = '';  
       this.init_game();
@@ -136,34 +211,50 @@ export class PlayPage
       this.checkLanguage();      
   }
 
-  ImagesController(scope)
+  /**  A player has max 9 pieces to use and max 7 pieces taken     
+   *   This function tell if it has more that 7 in total       */
+  showOutboardSecondLine(player: number)
   {
-    scope.link = Array();
-    scope.link[0] =  "assets/img/place10.jpg";
-    scope.link[1] =  "assets/img/place2N.jpg";
-  }
-
-  showOutboardPiece(place: number, count: number)
-  {
-    if(count == 2)
+    if( (this.piecesToUse[player] + this.piecesTaken[player]) > 7)
       return 1;
     return 0;
   }
 
-  imgOutboardPiece(place: number, count: number)
+  /**  Image filename for the pieces  */  
+  imgPiece(position: number)
   {
-    if(count == 2)
+    if(position <= 14)  //first two lines - Oponent pieces To Use and Taken
+    {
+      if(position <= this.piecesToUse[0])
+        return "assets/img/" + ( (this.playwith) );
+    }
+    else if(position > 56 )  //last two lines - My pieces To Use and Taken
+    {
+
+    }
+    else
       return "assets/img/b.jpg";
-    return  "assets/img/w.jpg";
+    return  "assets/img/0.jpg";
   }
 
   init_game()
   {
+    var index;
+    this.piecesToUse[0] = 9;  //oponent
+    this.piecesToUse[1] = 9;  //me
+    this.piecesTaken[0] = 0;
+    this.piecesTaken[1] = 0;
+
       this.player = 1;
       this.move = 0;
       this.winner = -1;
-      this.moves = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-      this.board = ['', '', '', '', '', '', '', '', ''];
+      for (index = 0; index < this.moves.length; index++) 
+      {
+        this.moves[index][0] = -1;
+        this.moves[index][1] = -1;
+      }
+      for (index = 0; index < this.board.length; index++) 
+        this.board[index] = -1;
   }
 
   ask_new_game()
@@ -275,7 +366,8 @@ export class PlayPage
     {
       for (index = 0; index < this.move; index++)
       {
-        this.moves[index] = parseInt(localStorage.getItem('moves'+index));
+        this.moves[index][0] = parseInt(localStorage.getItem('moves0'+index));
+        this.moves[index][1] = parseInt(localStorage.getItem('moves1'+index));
         if(index % 2 == 0)
           this.board[this.moves[index]] = 'X';
         else

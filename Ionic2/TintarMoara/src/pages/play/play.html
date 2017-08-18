@@ -17,11 +17,11 @@
     <button ion-button small (click)="toggleDifficulty(3)" [color]="dificulty == 3 ? 'light' : 'primary'">{{ 'EXPERT' | translate }}</button>
   </div>
   <div id="playtable" class="board-table" float-left>
-    <div class="board-row">
-      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,1)"/>
-      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,1)"/>
-      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,2)"/>
-      <img [hidden]="showOutboardPiece(0,1)" [src]="imgOutboardPiece(0,2)"/>
+    <div class="board-row" id="row_oponent_pieces">
+      <img [src]="imgOutboardPiece(0,1)"/>
+      <img [src]="imgOutboardPiece(0,1)"/>
+      <img [src]="imgOutboardPiece(0,2)"/>
+      <img [src]="imgOutboardPiece(0,2)"/>
     </div>
     <div class="board-row">
       <img [hidden]="showOutboardPiece(0,1)" src="assets/img/place10.jpg"/>
