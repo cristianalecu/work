@@ -39,7 +39,9 @@ export class PlayPage
   /** 1 if I play with white or black always   */
   playwithalways: number;
 
-  piecesToUse: Array<number> = [9, 9];  //player and oponent
+  /**  black and white pieces remained to use */
+  piecesToUse: Array<number> = [9, 9];
+  /**  pieces taken by black and white player */
   piecesTaken: Array<number> = [0, 0];
 
   /** 1 - Restart           
@@ -69,12 +71,27 @@ export class PlayPage
    *  43 -- -- 46 -- -- 49      */
   board_map: Array<number> =[1, 4, 7, 9, 11, 13, 17, 18, 19, 22, 23, 24, 26, 27, 28, 31, 32, 33, 37, 39, 41, 43, 46, 49];
   /** better view in debug for the table with pieces */
-  board_table: Array<Array<string>> = new Array(7);
+  board_table: Array<string> = [
+       '0--0--0',
+       '|0-0-0|',
+       '||000||',
+       '000 000',
+       '||000||',
+       '|0-0-0|',
+       '0--0--0'];
   /** better view in debug for the table with order of moves */
-  board_table2: Array<Array<string>> = new Array(7);
+  board_table2: Array<string> = [
+    '   -- --    -- --   ',
+    '||    --    --    ||',
+    '|| ||          || ||',
+    '                    ',
+    '|| ||          || ||',
+    '||    --    --    ||',
+    '   -- --    -- --   '];
 
   /** what the user see  */
   board_show: Array<string> = new Array(49);
+
   /** list of moves          
    *  - Odds for white player    
    *  - Evens for black player   */
@@ -108,22 +125,22 @@ export class PlayPage
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14,15,16,17,18,19,20,21,22,23] //moves from outside pplace on board
   ];
   /** winning positions  */
-  targets: Array<Array<number>> = [[1, 4, 7],
-                                   [9, 11, 13],
-                                   [17, 18, 19],
-                                   [22, 23, 24],
-                                   [26, 27, 28],
-                                   [31, 32, 33],
-                                   [37, 39, 42],
-                                   [43, 46, 49],
-                                   [1, 22, 43],
-                                   [9, 23, 37],
-                                   [17, 24, 31],
-                                   [4, 11, 18],
-                                   [32, 39, 46],
-                                   [19, 26, 33],
-                                   [13, 27, 41],
-                                   [7, 28, 49]];
+  targets: Array<Array<number>> = [[0,1,2],
+                                 [3,4,,5],
+                                 [6,7,8],
+                                 [9,10,11],
+                                 [12,13,14],
+                                 [15,16,17],
+                                 [18,19,20],
+                                 [21,22,23],
+                                 [0,9,21],
+                                 [3,10,18],
+                                 [6,11,15],
+                                 [1,4,7],
+                                 [16,19,22],
+                                 [8,12,17],
+                                 [5,13,20],
+                                 [2,14,23]];
 
   translater: TranslateService;
   userLang: string;
@@ -152,6 +169,8 @@ export class PlayPage
   depthSearch:number;
   /** how many moves ahead was looking maximum */
   maxDepthSearch;
+  /** how many moves ahead to look maximum is planned */
+  maxDepthSearchLimit;
   /** how many moves checked in total until now */
   checks;
 
@@ -159,36 +178,12 @@ export class PlayPage
   {
     var index = 0;
 
-    for (index = 0; index < this.board_table.length; index++)
-    {
-      this.board_table[index] = new Array(7);
-      this.board_table2[index] = new Array(7);
-    }
-
-      this.targets= [[1, 5, 9]
-                    ,[3, 5, 7]
-                    ,[1, 2, 3]
-                    ,[4, 5, 6]
-                    ,[7, 8, 9]
-                    ,[1, 4, 7]
-                    ,[2, 5, 8]
-                    ,[3, 6, 9]];
-      this.moves_allowed= [[1, 5, 9]
-                    ,[3, 5, 7]
-                    ,[1, 2, 3]
-                    ,[4, 5, 6]
-                    ,[7, 8, 9]
-                    ,[1, 4, 7]
-                    ,[2, 5, 8]
-                    ,[3, 6, 9]];
-
       this.translater = translate;    
       this.userLang = '';  
       this.init_game();
 
       this.version = 1;
       this.dificulty = 0;    
-      this.winner = -1;
       this.playwith = 1;
       this.playwithalways = 0;
 
@@ -213,10 +208,35 @@ export class PlayPage
 
   /**  A player has max 9 pieces to use and max 7 pieces taken     
    *   This function tell if it has more that 7 in total       */
-  showOutboardSecondLine(player: number)
+  showOutboardSecondLine(position: number)
   {
-    if( (this.piecesToUse[player] + this.piecesTaken[player]) > 7)
-      return 1;
+    if(position == 0)  // oponent
+    {
+      if(this.playwith == 1)
+      {
+        if( (this.piecesToUse[0] + this.piecesTaken[0]) > 7)
+          return 1;
+      }
+      else
+      {
+        if( (this.piecesToUse[1] + this.piecesTaken[1]) > 7)
+          return 1;
+      }
+    }
+    else
+    {
+      if(this.playwith == 0)
+      {
+        if( (this.piecesToUse[0] + this.piecesTaken[0]) > 7)
+          return 1;
+      }
+      else
+      {
+        if( (this.piecesToUse[1] + this.piecesTaken[1]) > 7)
+          return 1;
+      }
+    }
+
     return 0;
   }
 
@@ -237,11 +257,27 @@ export class PlayPage
     return  "assets/img/0.jpg";
   }
 
+  board2table(show: boolean)
+  {
+    var index, line, col;
+
+    for (index = 0; index < this.board.length; index++) 
+    {
+      line = index / 7;
+      col = index % 7;
+      if(this.board[index] == -1)
+      {
+        //this.board_table[line][col] = '0';
+      }
+    }
+
+  }
+
   init_game()
   {
     var index;
-    this.piecesToUse[0] = 9;  //oponent
-    this.piecesToUse[1] = 9;  //me
+    this.piecesToUse[0] = 9;  //black
+    this.piecesToUse[1] = 9;  //white
     this.piecesTaken[0] = 0;
     this.piecesTaken[1] = 0;
 
@@ -250,11 +286,16 @@ export class PlayPage
       this.winner = -1;
       for (index = 0; index < this.moves.length; index++) 
       {
+        if(this.moves[index]===undefined)
+          this.moves[index] = [];
         this.moves[index][0] = -1;
         this.moves[index][1] = -1;
+        this.moves[index][2] = -1;
       }
       for (index = 0; index < this.board.length; index++) 
         this.board[index] = -1;
+
+    this.board2table(true);
   }
 
   ask_new_game()
