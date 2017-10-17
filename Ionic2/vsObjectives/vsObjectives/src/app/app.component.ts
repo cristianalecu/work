@@ -2,8 +2,18 @@ import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
 import { StatusBar, Splashscreen } from 'ionic-native';
 
-import { Page1 } from '../pages/page1/page1';
-import { Page2 } from '../pages/page2/page2';
+import { ObjectivesPage } from '../pages/objectives/objectives';
+import { ObjectivePage } from '../pages/objective/objective';
+import { CategoryPage } from '../pages/category/category';
+import { CategoriesPage } from '../pages/categories/categories';
+import { AuthorsPage } from '../pages/authors/authors';
+import { AuthorPage } from '../pages/author/author';
+import { BooksPage } from '../pages/books/books';
+import { BookPage } from '../pages/book/book';
+import { TasksPage } from '../pages/tasks/tasks';
+import { TaskPage } from '../pages/task/task';
+import { SettingsPage } from '../pages/settings/settings';
+
 
 
 @Component({
@@ -12,7 +22,7 @@ import { Page2 } from '../pages/page2/page2';
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
 
-  rootPage: any = Page1;
+  rootPage: any = ObjectivesPage;
 
   pages: Array<{title: string, component: any}>;
 
@@ -21,9 +31,13 @@ export class MyApp {
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Page One', component: Page1 },
-      { title: 'Page Two', component: Page2 }
-    ];
+      { title: 'Objectives', component: ObjectivesPage },
+      { title: 'Tasks', component: TasksPage },
+      { title: 'Books', component: BooksPage },
+      { title: 'Categories', component: CategoriesPage },
+      { title: 'Authors', component: AuthorsPage },
+      { title: 'Settings', component: SettingsPage },
+       ];
 
   }
 
