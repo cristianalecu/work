@@ -2,10 +2,12 @@ import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
+import {TranslateService} from '@ngx-translate/core';
 
 import { HomePage } from '../pages/home/home';
-import { MultiplayerPage } from '../pages/multiplayer/multiplayer';
-import { StatisticsPage } from '../pages/statistics/statistics';
+import { SettingsPage } from '../pages/settings/settings';
+import { PlayersPage } from '../pages/players/players';
+
 
 @Component({
   templateUrl: 'app.html'
@@ -17,14 +19,14 @@ export class MyApp {
 
   pages: Array<{title: string, component: any}>;
 
-  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen) {
+  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen, translate: TranslateService) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Play', component: HomePage },
-      { title: 'Multiplayer', component: MultiplayerPage },
-      { title: 'Statistics', component: StatisticsPage }
+      { title: 'PLAY', component: HomePage },
+      { title: 'SETTINGS', component: SettingsPage },
+      { title: 'PLAYERS', component: PlayersPage }
     ];
 
   }

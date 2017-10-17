@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{ 'PLAYERS' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding id="page3">
+  <form id="players-form8">
+    <ion-item id="players-select4">
+      <ion-label>{{ 'PLAYER' | translate }}</ion-label>
+      <ion-select name="player_user" id="player_user" [(ngModel)]="player_user" (ngModelChange)="changePlayerUser()">
+        <ion-option *ngFor="let player of players" value="{{player.id}}">
+          {{player.name}}
+        </ion-option>
+      </ion-select>
+    </ion-item>
+    <button id="players-add" (click)="playerAdd()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+      {{ 'ADD PLAYER' | translate }}
+    </button>
+    <button id="players-edit" (click)="playerEdit()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+      {{ 'EDIT' | translate }}
+    </button>
+    <button id="players-reset" (click)="playerReset()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+      {{ 'RESET' | translate }}
+    </button>
+    <button id="players-delete" (click)="playerDelete()" ion-button color="balanced" style="border-radius:15px 15px 15px 15px;">
+      {{ 'DELETE' | translate }}
+    </button>
+  </form>
+  <form id="players-form9">
+    <ion-item id="players-input6">
+      <ion-label>{{ 'NAME' | translate }}</ion-label>
+      <ion-input type="text" name="usr_name" [(ngModel)]="usr_name"></ion-input>
+    </ion-item>
+    <ion-item id="players-input7">
+      <ion-label>{{ 'EMAIL' | translate }}</ion-label>
+      <ion-input type="email"  name="usr_email" [(ngModel)]="usr_email"></ion-input>
+    </ion-item>
+    <ion-item color="balanced" id="players-list-item4">
+      {{ 'WINS / LOSES' | translate }} {{usr_points}}
+    </ion-item>
+    <button id="players-button12" (click)="playerSave()" ion-button color="positive" block>
+      {{ 'SAVE' | translate }}
+    </button>
+  </form>
+  <h2 id="players-heading1" style="color:#000000;">
+    {{ 'RANKING' | translate }}
+  </h2>
+  <ion-list id="players-list2">
+    <ion-item color="none"  *ngFor="let point of points" >
+      {{point[1]}}p {{players[point[0]].name}}
+    </ion-item>
+  </ion-list>
+</ion-content>

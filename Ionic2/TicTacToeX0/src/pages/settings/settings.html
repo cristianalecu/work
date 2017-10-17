@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{ 'SETTINGS' | translate }}</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding id="page2">
+  <div id="settings-container1">
+    <form id="settings-form4">
+      <ion-item id="settings-select1">
+        <ion-label>{{ 'MAIN PLAYER' | translate }}</ion-label>
+        <ion-select name="player_user" [(ngModel)]="player_user" (ngModelChange)="changePlayerUser()">
+          <ion-option *ngFor="let player of players" value="{{player.id}}">
+            {{player.name}}
+          </ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item id="settings-toggle1">
+        <ion-label>{{ 'PLAY WITH WHITE' | translate }}</ion-label>
+        <ion-toggle ccolor="energized"  [(ngModel)]="playwith" name="playwith" (ngModelChange)="changePlaywith()"></ion-toggle>
+      </ion-item>
+      <ion-item id="settings-toggle2">
+        <ion-label>{{ 'ALWAYS' | translate }}</ion-label>
+        <ion-toggle color="energized"  [(ngModel)]="playwithalways" name="playwithalways" (ngModelChange)="changePlaywithAlways()"></ion-toggle>
+      </ion-item>
+      <div class="spacer" style="width:300px;height:32px;" id="settings-spacer1"></div>
+      <ion-item id="settings-select2">
+        <ion-label>{{ 'OPONENT' | translate }}</ion-label>
+        <ion-select name="Oponent"  [(ngModel)]="player_oponent" (ngModelChange)="changePlayerOponent()">
+          <ion-option *ngFor="let player of oponents" value="{{player.id}}">
+              {{player.name}}
+          </ion-option>
+        </ion-select>
+      </ion-item>    
+    </form>
+  </div>
+</ion-content>
