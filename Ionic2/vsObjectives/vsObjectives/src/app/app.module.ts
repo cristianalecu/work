@@ -1,5 +1,9 @@
+import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, ErrorHandler } from '@angular/core';
 import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
+import { Http, HttpModule } from '@angular/http';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { MyApp } from './app.component';
 
 import { ObjectivesPage } from '../pages/objectives/objectives';
@@ -30,7 +34,16 @@ import { SettingsPage } from '../pages/settings/settings';
     SettingsPage
   ],
   imports: [
-    IonicModule.forRoot(MyApp)
+    BrowserModule,
+    HttpModule,
+    IonicModule.forRoot(MyApp),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (createTranslateLoader),
+        deps: [Http]
+      }
+    })
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -50,3 +63,7 @@ import { SettingsPage } from '../pages/settings/settings';
   providers: [{provide: ErrorHandler, useClass: IonicErrorHandler}]
 })
 export class AppModule {}
+
+export function createTranslateLoader(http: Http) {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
