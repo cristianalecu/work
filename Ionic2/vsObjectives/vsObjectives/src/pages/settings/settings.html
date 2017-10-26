@@ -4,14 +4,15 @@
       <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>
-      Settings
+      {{ 'SETTINGS' | translate }}
     </ion-title>
   </ion-navbar>
 </ion-header>
 <ion-content padding id="page4">
+  <div id="settings-container1">
   <form id="settings-form8">
-    <button id="settings-button31" ion-button color="positive" block>
-      Sinchronize now
+    <button id="sync_now" ion-button color="positive" block>
+      {{ 'SYNCRONIZE NOW' | translate }}
     </button>
     <ion-item id="settings-select13">
       <ion-label>
@@ -45,4 +46,5 @@
       <ion-toggle color="positive" checked="false"></ion-toggle>
     </ion-item>
   </form>
+  </div>
 </ion-content>

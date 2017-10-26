@@ -36,6 +36,11 @@ export class MyApp {
       { title: 'Books', component: BooksPage },
       { title: 'Categories', component: CategoriesPage },
       { title: 'Authors', component: AuthorsPage },
+      { title: 'Objective', component: ObjectivePage },
+      { title: 'Task', component: TaskPage },
+      { title: 'Book', component: BookPage },
+      { title: 'Categorie', component: CategoryPage },
+      { title: 'Author', component: AuthorPage },
       { title: 'Settings', component: SettingsPage },
        ];
 
