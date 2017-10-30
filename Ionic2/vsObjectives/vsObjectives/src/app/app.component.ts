@@ -1,6 +1,8 @@
 import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
-import { StatusBar, Splashscreen } from 'ionic-native';
+import { StatusBar } from '@ionic-native/status-bar';
+import { SplashScreen } from '@ionic-native/splash-screen';
+import {TranslateService} from '@ngx-translate/core';
 
 import { ObjectivesPage } from '../pages/objectives/objectives';
 import { ObjectivePage } from '../pages/objective/objective';
@@ -15,7 +17,6 @@ import { TaskPage } from '../pages/task/task';
 import { SettingsPage } from '../pages/settings/settings';
 
 
-
 @Component({
   templateUrl: 'app.html'
 })
@@ -26,23 +27,23 @@ export class MyApp {
 
   pages: Array<{title: string, component: any}>;
 
-  constructor(public platform: Platform) {
+  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen, translate: TranslateService) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Objectives', component: ObjectivesPage },
-      { title: 'Tasks', component: TasksPage },
-      { title: 'Books', component: BooksPage },
-      { title: 'Categories', component: CategoriesPage },
-      { title: 'Authors', component: AuthorsPage },
-      { title: 'Objective', component: ObjectivePage },
-      { title: 'Task', component: TaskPage },
-      { title: 'Book', component: BookPage },
-      { title: 'Categorie', component: CategoryPage },
-      { title: 'Author', component: AuthorPage },
-      { title: 'Settings', component: SettingsPage },
-       ];
+      { title: 'OBJECTIVES'    , component: ObjectivesPage },
+      { title: 'TASKS'         , component: TasksPage },
+      { title: 'BOOKS'         , component: BooksPage },
+      { title: 'CATEGORIES'    , component: CategoriesPage },
+      { title: 'AUTHORS'       , component: AuthorsPage },
+      { title: 'OBJECTIVE'     , component: ObjectivePage },
+      { title: 'TASK'          , component: TaskPage },
+      { title: 'BOOK'          , component: BookPage },
+      { title: 'CATEGORY'      , component: CategoryPage },
+      { title: 'AUTHOR'        , component: AuthorPage },
+      { title: 'SETTINGS'      , component: SettingsPage },
+    ];
 
   }
 
@@ -50,8 +51,8 @@ export class MyApp {
     this.platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
-      StatusBar.styleDefault();
-      Splashscreen.hide();
+      this.statusBar.styleDefault();
+      this.splashScreen.hide();
     });
   }
 

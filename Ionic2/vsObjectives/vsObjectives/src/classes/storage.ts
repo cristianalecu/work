@@ -18,16 +18,42 @@ export type Book = { title: string, author: Author, category: Category, until: D
   
   
 export class Storage {
+
+  //Settings
   version: number;
+  userLang: string
 
   constructor()
   {
     this.version = 1;
-
+    this.userLang = '';
   }
 
+  SaveSettings() {
+    //
+  }
+  SaveCategories() {
+    //
+  }
+  SaveObjectives() {
+    //
+  }
+  SaveTasks() {
+    //
+  }
+  SaveAuthors() {
+    //
+  }
+  SaveBooks() {
+    //
+  }
   Save()
   {
-    //
+    this.SaveSettings();
+    this.SaveCategories();
+    this.SaveObjectives();
+    this.SaveTasks();
+    this.SaveAuthors();
+    this.SaveBooks();
   }
 }

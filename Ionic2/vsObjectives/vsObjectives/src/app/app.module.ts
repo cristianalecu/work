@@ -1,11 +1,11 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, ErrorHandler } from '@angular/core';
-import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
-import { Http, HttpModule } from '@angular/http';
+import { ErrorHandler, NgModule } from '@angular/core';
+import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { MyApp } from './app.component';
+import { Http, HttpModule } from '@angular/http';
 
+import { MyApp } from './app.component';
 import { ObjectivesPage } from '../pages/objectives/objectives';
 import { ObjectivePage } from '../pages/objective/objective';
 import { CategoryPage } from '../pages/category/category';
@@ -18,9 +18,13 @@ import { TasksPage } from '../pages/tasks/tasks';
 import { TaskPage } from '../pages/task/task';
 import { SettingsPage } from '../pages/settings/settings';
 
+import { StatusBar } from '@ionic-native/status-bar';
+import { SplashScreen } from '@ionic-native/splash-screen';
+
 @NgModule({
   declarations: [
     MyApp,
+    SettingsPage,
     ObjectivesPage,
     ObjectivePage,
     CategoryPage,
@@ -48,6 +52,7 @@ import { SettingsPage } from '../pages/settings/settings';
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
+    SettingsPage,
     ObjectivesPage,
     ObjectivePage,
     CategoryPage,
@@ -60,10 +65,17 @@ import { SettingsPage } from '../pages/settings/settings';
     TaskPage,
     SettingsPage
   ],
-  providers: [{provide: ErrorHandler, useClass: IonicErrorHandler}]
+  providers: [
+    StatusBar,
+    SplashScreen,
+    {provide: ErrorHandler, useClass: IonicErrorHandler}
+  ]
 })
-export class AppModule {}
 
+export class AppModule 
+{
+
+}
 export function createTranslateLoader(http: Http) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
