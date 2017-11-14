@@ -3,24 +3,22 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>
-      Categories
-    </ion-title>
+    <ion-title>{{ 'CATEGORIES' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
 <ion-content padding id="page15">
   <ion-list id="categories-list17">
-    <ion-item color="none" id="categories-list-item63">
+    <ion-item color="none" *ngFor="let categ of categories">
       <ion-thumbnail item-left>
         <img />
       </ion-thumbnail>
       <h2>
-        Item
+        {{ categ[0] }}
       </h2>
     </ion-item>
     <ion-item color="none" id="categories-list-item64">
       <ion-avatar item-left>
-        <img src="assets/img/QoKPLK7bSeSQbWDOSa9x_place1b.jpg" />
+        <img  />
       </ion-avatar>
       <h2>
         Item

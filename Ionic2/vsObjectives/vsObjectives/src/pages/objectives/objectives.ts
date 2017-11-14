@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import {TranslateService} from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
-
+import { Storage } from '../../classes/storage.ts';
 
 @Component({
   selector: 'page-objectives',
@@ -16,23 +16,10 @@ export class ObjectivesPage {
   constructor(public navCtrl: NavController, translate: TranslateService, private alertCtrl: AlertController)
   {
     this.translater = translate;
+    this.languageSet = false;
     this.storage = new Storage;
-    this.storage.getStorage();
+    this.storage.LoadSettings();
     this.checkLanguage();      
-  }
-
-  getStorage() {
-    if (localStorage.getItem('version') != null) {
-      this.version = parseInt(localStorage.getItem('version'));
-    }
-    else    //initialize 
-    {
-      localStorage.setItem('version', '' + this.version);
-      localStorage.setItem('sync_every', '0');
-      localStorage.setItem('account_email', '');
-      localStorage.setItem('last_datetime_sync', '2017-01-01 12:30:00');
-      localStorage.setItem('track_history', '0');
-    }
   }
 
   checkLanguage()
@@ -41,21 +28,17 @@ export class ObjectivesPage {
     lang = navigator.language.split('-')[0];
     lang = /(ro|en)/gi.test(lang) ? lang : 'en';
 
-    if (this.storage.userLang == '')
+    if (this.storage.userLang == '' || this.storage.userLang == null)
     {
       this.storage.userLang = lang;
-      this.storage.SaveSettings;
+      this.storage.SaveSettings();
     }
 
-
-    if (this.storage.userLang == lang)
+    if (this.languageSet)
       return;
-
-
  
-   this.translater.setDefaultLang('en');
-   this.translater.use(this.userLang);
-    
+    this.translater.setDefaultLang('en');
+    this.translater.use(lang);
  
   }
 }
