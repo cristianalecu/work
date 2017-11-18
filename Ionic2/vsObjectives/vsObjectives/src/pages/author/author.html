@@ -3,64 +3,56 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>
-      author
-    </ion-title>
+    <ion-title>{{ 'AUTHOR' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
 <ion-content padding id="page9">
   <form id="author-form16">
     <ion-item id="author-input6">
-      <ion-label>
-        Name
-      </ion-label>
-      <ion-input type="text" placeholder=""></ion-input>
+      <ion-label>{{ 'NAME' | translate }}</ion-label>
+      <ion-input type="text" name="title" [(ngModel)]="title"></ion-input>
     </ion-item>
-    <ion-item id="author-textarea14">
-      <ion-label>
-        About
-      </ion-label>
-      <ion-textarea placeholder=""></ion-textarea>
+    <ion-item id="author-textarea14" >
+      <ion-label>{{ 'ABOUT' | translate }}</ion-label>
+      <ion-textarea placeholder="" name="about" [(ngModel)]="about"></ion-textarea>
     </ion-item>
-    <div id="author-markdown34" class="show-list-numbers-and-dots">
-      <p style="color:#000000;">
-        <strong>
-          Pictures
-        </strong>
-      </p>
+    <button id="btnTakePhoto" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="takePicture()">
+      <ion-icon name="camera"></ion-icon> &nbsp; {{ 'TAKE PHOTO' | translate }}
+    </button>
+    <!-- The "Upload File" button in Android. The File Input element is jus hidden and the button calls the its .click() method -->
+    <div *ngIf="!isIOS" style="display:inline">
+      <button ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="fileInput.click()">
+        <ion-icon name="folder"></ion-icon> &nbsp; {{ 'BROWSE FILE' | translate }}
+      </button>
+      <div hidden><input type="file" id="fileUpload" #fileInput (change)="onFileFromStorageChosen($event)" /></div>
     </div>
-    <div style="width:100%;height:220px;margin:0px 0px;line-height:250px;background-color:#e8ebef;text-align:center;">
-      <i class="icon ion-image" style="font-size:64px;color:#888;vertical-align:middle;"></i>
+
+    <!-- The "Upload File" button in iOS. The File Input element displayed as transparent and overlayed on top of the button -->
+    <div *ngIf="isIOS" style="display:inline">
+      <input type="file" id="fileUpload" class="ios-file-input" (change)="onFileFromStorageChosen($event)" />
+      <button ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
+        <ion-icon name="folder"></ion-icon> &nbsp; {{ 'BROWSE FILE' | translate }}
+      </button>
     </div>
+    <div style="width:100%;">
+      <img *ngIf="!userDefined" src="{{picture}}" />
+      <img *ngIf="userDefined" [src]="DomSanitizer.bypassSecurityTrustUrl(selfieImage)" class="registerImage" />
+    </div>
+    <button id="author_save" ion-button color="positive" block (click)="saveAuthor()">
+      {{ 'SAVE AUTHOR' | translate }}
+    </button>
   </form>
   <div id="author-markdown35" class="show-list-numbers-and-dots">
     <p style="color:#000000;">
-      <strong>
-        Books
-      </strong>
+      <strong> {{ 'BOOKS' | translate }}</strong>
     </p>
   </div>
   <ion-list id="author-list8">
-    <ion-item color="none" id="author-list-item39">
+    <ion-item color="none" id="author-list-item39" *ngFor="let book of books">
       <ion-avatar item-left>
-        <img  />
+        <img src="{{ book[0] }}" />
       </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="author-list-item40">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="author-list-item41">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="author-list-item42">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="author-list-item43">
-      Item 3
+      <h2>{{ book[1] }}</h2>
     </ion-item>
   </ion-list>
 </ion-content>

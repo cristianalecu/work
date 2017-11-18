@@ -10,32 +10,14 @@
   <ion-list id="categories-list17">
     <ion-item color="none" *ngFor="let categ of categories">
       <ion-thumbnail item-left>
-        <img />
+        <img src="{{ categ[1] }}"  (click)="editCateg(categ[2])" />
       </ion-thumbnail>
-      <h2>
-        {{ categ[0] }}
+      <h2  (click)="editCateg(categ[2])">
+        {{ categ[0] }} 
       </h2>
-    </ion-item>
-    <ion-item color="none" id="categories-list-item64">
-      <ion-avatar item-left>
-        <img  />
-      </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="categories-list-item65">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="categories-list-item66">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="categories-list-item67">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="categories-list-item68">
-      Item 3
     </ion-item>
   </ion-list>
+  <button id="categ_add" ion-button color="positive" block (click)="addCateg()">
+    {{ 'ADD NEW CATEGORY' | translate }}
+  </button>
 </ion-content>

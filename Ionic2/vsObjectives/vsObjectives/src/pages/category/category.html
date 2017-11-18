@@ -3,120 +3,81 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>
-      category
-    </ion-title>
+    <ion-title>{{ 'CATEGORY' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
 <ion-content padding id="page10">
   <form id="category-form17">
     <ion-item id="category-input8">
-      <ion-label>
-        Title
-      </ion-label>
-      <ion-input type="text" placeholder=""></ion-input>
+      <ion-label>{{ 'TITLE' | translate }}</ion-label>
+      <ion-input type="text" name="title" [(ngModel)]="title"></ion-input>
     </ion-item>
     <ion-item id="category-textarea15">
-      <ion-label>
-        About
-      </ion-label>
-      <ion-textarea placeholder=""></ion-textarea>
+      <ion-label>{{ 'ABOUT' | translate }}</ion-label>
+      <ion-textarea placeholder="" name="about" [(ngModel)]="about"></ion-textarea>
     </ion-item>
-    <div style="width:100%;height:220px;margin:0px 0px;line-height:250px;background-color:#e8ebef;text-align:center;">
-      <i class="icon ion-image" style="font-size:64px;color:#888;vertical-align:middle;"></i>
+    <button id="btnTakePhoto" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="takePicture()">
+      <ion-icon name="camera"></ion-icon> &nbsp; {{ 'TAKE PHOTO' | translate }}
+    </button>
+    <!-- The "Upload File" button in Android. The File Input element is jus hidden and the button calls the its .click() method -->
+    <div *ngIf="!isIOS" style="display:inline">
+          <button ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="fileInput.click()">
+            <ion-icon name="folder"></ion-icon> &nbsp; {{ 'BROWSE FILE' | translate }}
+          </button>
+      <div hidden ><input type="file" id="fileUpload" #fileInput (change)="onFileFromStorageChosen($event)" /></div>
     </div>
-    <div style="width:100%;height:220px;margin:0px 0px;line-height:250px;background-color:#e8ebef;text-align:center;">
-      <i class="icon ion-image" style="font-size:64px;color:#888;vertical-align:middle;"></i>
+
+    <!-- The "Upload File" button in iOS. The File Input element displayed as transparent and overlayed on top of the button -->
+    <div *ngIf="isIOS" style="display:inline">
+          <input type="file" id="fileUpload" class="ios-file-input" (change)="onFileFromStorageChosen($event)" />
+          <button ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
+            <ion-icon name="folder"></ion-icon> &nbsp; {{ 'BROWSE FILE' | translate }}
+          </button>
+    </div>
+    <div style="width:100%;">
+      <img  *ngIf="!userDefined" src="{{picture}}" />
+      <img  *ngIf="userDefined" [src]="DomSanitizer.bypassSecurityTrustUrl(selfieImage)" class="registerImage" />
     </div>
   </form>
-  <div id="category-markdown37" class="show-list-numbers-and-dots">
-    <p style="color:#000000;">
-      <strong>
-        Objectives
-      </strong>
-    </p>
+  <div id="statistic">
+    <div id="author-markdown1" class="show-list-numbers-and-dots">
+      <p style="color:#000000;">
+        <strong> {{ 'OBJECTIVES' | translate }}</strong>
+      </p>
+      <ion-list id="author-list8">
+        <ion-item color="none" id="author-list-item39" *ngFor="let objective of objectives">
+          <ion-avatar item-left>
+            <img src="{{ objective[0] }}" />
+          </ion-avatar>
+          <h2>{{ objective[1] }}</h2>
+        </ion-item>
+      </ion-list>
+    </div>
+    <div id="author-markdown2" class="show-list-numbers-and-dots">
+      <p style="color:#000000;">
+        <strong> {{ 'TASKS' | translate }}</strong>
+      </p>
+      <ion-list id="author-list8">
+        <ion-item color="none" id="author-list-item39" *ngFor="let task of tasks">
+          <ion-avatar item-left>
+            <img src="{{ task[0] }}" />
+          </ion-avatar>
+          <h2>{{ task[1] }}</h2>
+        </ion-item>
+      </ion-list>
+    </div>
+    <div id="author-markdown35" class="show-list-numbers-and-dots">
+      <p style="color:#000000;">
+        <strong> {{ 'BOOKS' | translate }}</strong>
+      </p>
+      <ion-list id="author-list8">
+        <ion-item color="none" id="author-list-item39" *ngFor="let book of books">
+          <ion-avatar item-left>
+            <img src="{{ book[0] }}" />
+          </ion-avatar>
+          <h2>{{ book[1] }}</h2>
+        </ion-item>
+      </ion-list>
+    </div>
   </div>
-  <ion-list id="category-list12">
-    <ion-item color="none" id="category-list-item51">
-      <ion-avatar item-left>
-        <img  />
-      </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="category-list-item52">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="category-list-item53">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="category-list-item54">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="category-list-item55">
-      Item 3
-    </ion-item>
-  </ion-list>
-  <div id="category-markdown39" class="show-list-numbers-and-dots">
-    <p style="color:#000000;">
-      <strong>
-        Tasks
-      </strong>
-    </p>
-  </div>
-  <ion-list id="category-list9">
-    <ion-item color="none" id="category-list-item44">
-      <ion-avatar item-left>
-        <img  />
-      </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="category-list-item45">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="category-list-item46">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="category-list-item47">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="category-list-item48">
-      Item 3
-    </ion-item>
-  </ion-list>
-  <div id="category-markdown40" class="show-list-numbers-and-dots">
-    <p style="color:#000000;">
-      <strong>
-        Books
-      </strong>
-    </p>
-  </div>
-  <ion-list id="category-list13">
-    <ion-item color="none" id="category-list-item56">
-      <ion-avatar item-left>
-        <img  />
-      </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="category-list-item57">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="category-list-item58">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="category-list-item59">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="category-list-item60">
-      Item 3
-    </ion-item>
-  </ion-list>
 </ion-content>

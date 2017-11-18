@@ -15,36 +15,30 @@
       {{ 'SYNCRONIZE NOW' | translate }}
     </button>
     <ion-item id="settings-select13">
-      <ion-label>
-        Synchronize every
-      </ion-label>
+      <ion-label>{{ 'SYNCRONIZE EVERY' | translate }}</ion-label>
       <ion-select name="">
-        <ion-option>
-          Never
-        </ion-option>
-        <ion-option>
-          Hour
-        </ion-option>
-        <ion-option>
-          Day
-        </ion-option>
-        <ion-option>
-          Week
-        </ion-option>
+        <ion-option>{{ 'NEVER' | translate }}</ion-option>
+        <ion-option>{{ 'HOUR' | translate }}</ion-option>
+        <ion-option>{{ 'DAY' | translate }}</ion-option>
+        <ion-option>{{ 'WEEK' | translate }}</ion-option>
       </ion-select>
     </ion-item>
     <ion-item id="settings-input19">
-      <ion-label>
-        Google Account Email
-      </ion-label>
-      <ion-input type="email" placeholder=""></ion-input>
+      <ion-label>{{ 'GOOGLE EMAIL' | translate }}</ion-label>
+      <ion-input type="email" [(ngModel)]="storage.account_email" placeholder=""></ion-input>
     </ion-item>
     <ion-item id="settings-toggle5">
-      <ion-label>
-        Track History Statistics&Graphics
-      </ion-label>
+      <ion-label>{{ 'TRACK HISTORY' | translate }}</ion-label>
       <ion-toggle color="positive" checked="false"></ion-toggle>
     </ion-item>
+    <div class="spacer" style="width:300px;height:32px;" id="settings-spacer1"></div>
+    <ion-item id="settings-language">
+      <ion-label>{{ 'LANGUAGE' | translate }}</ion-label>
+      <ion-select name="Language" [(ngModel)]="storage.userLang" (ngModelChange)="changeLanguage()">
+        <ion-option value="en">  English</ion-option>
+        <ion-option value="ro">  Română</ion-option>
+      </ion-select>
+    </ion-item>   
   </form>
   </div>
 </ion-content>

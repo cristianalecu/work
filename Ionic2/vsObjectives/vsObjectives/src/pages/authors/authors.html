@@ -3,58 +3,32 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>
-      Authors
-    </ion-title>
+    <ion-title>{{ 'AUTHORS' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
 <ion-content padding id="page14">
-  <div id="authors-markdown19" class="show-list-numbers-and-dots">
+  <div id="authors" class="show-list-numbers-and-dots">
     <p style="color:#000000;">
-      <strong>
-        Sort by:
-      </strong>
-      Recent
+      <strong>{{ 'SORT BY' | translate }}</strong> {{ sortOrder }}
     </p>
   </div>
-  <button id="authors-button24" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Name
+  <button id="sortbyname" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
+    {{ 'NAME' | translate }}
   </button>
-  <button id="authors-button26" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Category
+  <button id="sortbydate" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
+    {{ 'DATE' | translate }}
   </button>
-  <button id="authors-button27" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Date
-  </button>
-  <ion-list id="authors-list16">
-    <ion-item color="none" id="authors-list-item36">
+  <ion-list id="authors_list">
+    <ion-item color="none" *ngFor="let author of authors">
       <ion-thumbnail item-left>
-        <img />
+        <img src="{{ author[1] }}" (click)="editAuthor(author[2])" />
       </ion-thumbnail>
-      <h2>
-        Item
+      <h2 (click)="editAuthor(author[2])">
+        {{ author[0] }}
       </h2>
-    </ion-item>
-    <ion-item color="none" id="authors-list-item37">
-      <ion-avatar item-left>
-        <img  />
-      </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="authors-list-item38">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="authors-list-item49">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="authors-list-item61">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="authors-list-item62">
-      Item 3
     </ion-item>
   </ion-list>
+  <button id="author_add" ion-button color="positive" block (click)="addAuthor()">
+    {{ 'ADD NEW AUTHOR' | translate }}
+  </button>
 </ion-content>
