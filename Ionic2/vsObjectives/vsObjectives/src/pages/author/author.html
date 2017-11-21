@@ -36,10 +36,13 @@
     </div>
     <div style="width:100%;">
       <img *ngIf="!userDefined" src="{{picture}}" />
-      <img *ngIf="userDefined" [src]="DomSanitizer.bypassSecurityTrustUrl(selfieImage)" class="registerImage" />
+      <img *ngIf="userDefined" [src]="DomSanitizer.bypassSecurityTrustUrl(picture)" class="registerImage" />
     </div>
-    <button id="author_save" ion-button color="positive" block (click)="saveAuthor()">
+    <button id="author_save" ion-button color="positive" small style="float:left ;border-radius:15px 15px 15px 15px;" (click)="saveAuthor()">
       {{ 'SAVE AUTHOR' | translate }}
+    </button>
+    <button id="author_save" ion-button color="positive" small style="float:right ;border-radius:15px 15px 15px 15px;" (click)="saveAuthor()">
+      {{ 'DELETE AUTHOR' | translate }}
     </button>
   </form>
   <div id="author-markdown35" class="show-list-numbers-and-dots">

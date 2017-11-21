@@ -22,11 +22,14 @@
   "LANGUAGE": "Language",
   "SORT BY": "Sort by",
   "NAME": "Name",
+  "TITLE": "Title",
   "DATE": "Date",
   "PRIORITY": "Priority",
   "IMPORTANCE": "Importance",
   "NAME ASCENDING": "Name Ascending",
   "NAME DESCENDING": "Name Descending",
+  "TITLE ASCENDING": "Title Ascending",
+  "TITLE DESCENDING": "Title Descending",
   "DATE ASCENDING": "Most Recent",
   "DATE DESCENDING": "Oldest",
   "CATEGORY ASCENDING": "Category Ascending",
@@ -51,7 +54,7 @@
   "SAVE": "Save",
   "RESET": "Reset",
   "DELETE": "Delete",
-  "ARE YOU SURE TO DELETE USER?": "Are you sure that you want to delete ?",
+  "ARE YOU SURE TO DELETE?": "Are you sure that you want to delete ?",
   "MUST FILL NAME": "You must fill the player name",
   "OK": "OK"
 }

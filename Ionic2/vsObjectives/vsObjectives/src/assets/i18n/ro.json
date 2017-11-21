@@ -15,11 +15,14 @@
   "LANGUAGE": "Limba",
   "SORT BY": "Ordonare",
   "NAME": "Nume",
+  "TITLE": "Titlu",
   "DATE": "Dată",
   "PRIORITY": "Prioritate",
   "IMPORTANCE": "Importanță",
   "NAME ASCENDING": "nume alfabetic",
   "NAME DESCENDING": "nume invers alfabetic",
+  "TITLE ASCENDING": "titlu alfabetic",
+  "TITLE DESCENDING": "titlu invers alfabetic",
   "DATE ASCENDING": "cele mai recente",
   "DATE DESCENDING": "cele mai vechi",
   "CATEGORY ASCENDING": "Categorie crescător",
@@ -44,7 +47,7 @@
   "SAVE": "Salvează",
   "RESET": "Reset",
   "DELETE": "Șterge",
-  "ARE YOU SURE TO DELETE USER?": "Ești sigur că vrei să ștergi ?",
+  "ARE YOU SURE TO DELETE?": "Ești sigur că vrei să ștergi ?",
   "MUST FILL NAME": "Trebuie să completați numele",
   "OK": "OK"
 }

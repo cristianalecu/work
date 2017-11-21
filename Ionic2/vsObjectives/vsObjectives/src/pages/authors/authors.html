@@ -9,14 +9,17 @@
 <ion-content padding id="page14">
   <div id="authors" class="show-list-numbers-and-dots">
     <p style="color:#000000;">
-      <strong>{{ 'SORT BY' | translate }}</strong> {{ sortOrder }}
+      <strong>{{ 'SORT BY' | translate }}</strong> {{ msgSortOrder }}
     </p>
   </div>
-  <button id="sortbyname" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
+  <button id="sortbyname" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="sortName()">
     {{ 'NAME' | translate }}
   </button>
-  <button id="sortbydate" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
+  <button id="sortbydate" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="sortDate()">
     {{ 'DATE' | translate }}
+  </button>
+  <button id="author_add" ion-button color="positive"  small style="float:right ;border-radius:15px 15px 15px 15px;" (click)="addAuthor()">
+    {{ 'ADD NEW AUTHOR' | translate }}
   </button>
   <ion-list id="authors_list">
     <ion-item color="none" *ngFor="let author of authors">
@@ -28,7 +31,4 @@
       </h2>
     </ion-item>
   </ion-list>
-  <button id="author_add" ion-button color="positive" block (click)="addAuthor()">
-    {{ 'ADD NEW AUTHOR' | translate }}
-  </button>
 </ion-content>

@@ -22,4 +22,9 @@ export class SettingsPage {
 
   }
 
+  changeLanguage() {
+    this.navCtrl.setRoot(SettingsPage);
+    this.navCtrl.popToRoot();
+  }
+
 }

@@ -106,9 +106,12 @@ export class Storage {
       this.sync_every = parseInt(localStorage.getItem('cnaobj_sync_every'));
       this.account_email = localStorage.getItem('cnaobj_account_email');
       this.last_datetime_sync = localStorage.getItem('cnaobj_last_datetime_sync');
-      this.track_history = parseInt(localStorage.getItem('cnaobj_track_history')) > 0;
+      this.track_history = localStorage.getItem('cnaobj_track_history') == "true";
       this.last_action = localStorage.getItem('cnaobj_last_action');
+      this.sort_authors = parseInt(localStorage.getItem('cnaobj_sort_authors'));
 
+      if (isNaN(this.sort_authors))
+        this.sort_authors = SortBy.NameAlphabeticalAsc
     }
     else    //initialize 
     {
@@ -133,7 +136,7 @@ export class Storage {
         title = localStorage.getItem('cnaobj_categ' + index + '_title');
         about = localStorage.getItem('cnaobj_categ' + index + '_about');
         picture = localStorage.getItem('cnaobj_categ' + index + '_picture');
-        userDefined = parseInt(localStorage.getItem('cnaobj_categ' + index + '_userdef')) > 0;
+        userDefined = localStorage.getItem('cnaobj_categ' + index + '_userdef') == "true";
 
         this.categories[index] =
         {
@@ -168,7 +171,7 @@ export class Storage {
         about = localStorage.getItem('cnaobj_author' + index + '_about');
         picture = localStorage.getItem('cnaobj_author' + index + '_picture');
         lastUpdated = localStorage.getItem('cnaobj_author' + index + '_lastUpdated');
-        userDefined = parseInt(localStorage.getItem('cnaobj_author' + index + '_userdef')) > 0;
+        userDefined = localStorage.getItem('cnaobj_author' + index + '_userdef') == "true";
 
         this.authors[index] =
           {
@@ -199,7 +202,7 @@ export class Storage {
     localStorage.setItem('cnaobj_last_datetime_sync', this.last_datetime_sync);
     localStorage.setItem('cnaobj_track_history', '' + this.track_history);
     localStorage.setItem('cnaobj_last_action', this.last_action);
-
+    localStorage.setItem('cnaobj_sort_authors', ''+this.sort_authors);
   }
   SaveCategories()
   {
