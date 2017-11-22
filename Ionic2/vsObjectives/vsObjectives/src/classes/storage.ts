@@ -14,8 +14,8 @@ export type Task = {
   time: Date, repeat: RepeatType, alarm: AlarmType, target: valueType, targetValue: number, remind: ReminderType, every: number, fromDate: Date, duration: number,
   notes: string, picture: string, 
 };
-export type Author = { title: string, about: string, picture: string, lastUpdated: string, userDefined: boolean }; 
-export type Book = { title: string, author: Author, category: Category, until: Date, pages: number, page: number, link: string, files: Array<string>, photos: Array<string> };
+export type Author = { title: string, about: string, picture: string, lastUpdated: string, userDefined: boolean };
+export type Book = { title: string, author: number, category: number, until: Date, pages: number, page: number, link: string, files: Array<string>, photos: Array<string> };
   
 export class Storage {
 
@@ -28,11 +28,14 @@ export class Storage {
   track_history: boolean;
   last_action: string;
   sort_authors: SortBy;
+  sort_books: SortBy;
 
   nr_categories: number;
   categories: Array<Category>;
   nr_authors: number;
   authors: Array<Author>;
+  nr_books: number;
+  books: Array<Book>;
 
   constructor()
   {
@@ -57,6 +60,14 @@ export class Storage {
     }
     else
       this.LoadAuthors();
+
+    if (localStorage.getItem('cnaobj_nr_books') == null)
+    {
+      this.InitBooks();
+      this.SaveBooks();
+    }
+    else
+      this.LoadBooks();
   }
 
   InitAll()
@@ -77,6 +88,7 @@ export class Storage {
     this.track_history = false;
     this.last_action = "";
     this.sort_authors = SortBy.NameAlphabeticalAsc;
+    this.sort_books = SortBy.NameAlphabeticalAsc;
   }
   InitCategories() {
     this.nr_categories = 5;
@@ -88,18 +100,31 @@ export class Storage {
     this.categories[4] = { title: "Finacial", about: "Be financially independent", picture: "5_financiar.jpg", userDefined: false };
   }
   InitAuthors() {
-    this.nr_authors = 2;
+    this.nr_authors = 3;
     this.authors = Array();
-    this.authors[0] = { title: "Robert Kiyosaki", about: "American businessman and author of the Rich Dad, Poor Dad series of books.", picture: "RobertKiyosaki.jpg", lastUpdated: "0", userDefined: false };
-    this.authors[1] = { title: "Brian Tracy", about: "American motivational public speaker and self-development author.", picture: "BrianTracy.jpg", lastUpdated: "1", userDefined: false };
+    this.authors[0] = { title: "Necunoscut", about: "Autor necunoscut.", picture: "anonymous.jpg", lastUpdated: "0", userDefined: false };
+    this.authors[1] = { title: "Robert Kiyosaki", about: "American businessman and author of the Rich Dad, Poor Dad series of books.", picture: "RobertKiyosaki.jpg", lastUpdated: "0", userDefined: false };
+    this.authors[2] = { title: "Brian Tracy", about: "American motivational public speaker and self-development author.", picture: "BrianTracy.jpg", lastUpdated: "1", userDefined: false };
   }
-  InitObjectives() {
+
+  InitObjectives()
+  {
   }
-  InitBooks() {
+
+  InitBooks()
+  {
+    this.nr_books = 2;
+    this.books = Array();
+    this.books[0] = { title: "Tată bogat, tată sărac", author: 0, category: 4, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array() };
+    this.books[1] = { title: "Psihologia succesului", author: 1, category: 2, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array() };
   }
-  InitTasks() {
+
+  InitTasks()
+  {
   }
-  LoadSettings() {
+
+  LoadSettings()
+  {
     if (localStorage.getItem('cnaobj_version') != null) {
       this.version = parseInt(localStorage.getItem('cnaobj_version'));
       this.userLang = localStorage.getItem('cnaobj_userLang');
@@ -109,9 +134,12 @@ export class Storage {
       this.track_history = localStorage.getItem('cnaobj_track_history') == "true";
       this.last_action = localStorage.getItem('cnaobj_last_action');
       this.sort_authors = parseInt(localStorage.getItem('cnaobj_sort_authors'));
+      this.sort_books = parseInt(localStorage.getItem('cnaobj_sort_books'));
 
       if (isNaN(this.sort_authors))
-        this.sort_authors = SortBy.NameAlphabeticalAsc
+        this.sort_authors = SortBy.NameAlphabeticalAsc;
+      if (isNaN(this.sort_books))
+        this.sort_books = SortBy.NameAlphabeticalAsc;
     }
     else    //initialize 
     {
@@ -132,7 +160,8 @@ export class Storage {
     if (this.nr_categories > 0)
     {
 
-      for (index = 0; index < this.nr_categories; index++) {
+      for (index = 0; index < this.nr_categories; index++)
+      {
         title = localStorage.getItem('cnaobj_categ' + index + '_title');
         about = localStorage.getItem('cnaobj_categ' + index + '_about');
         picture = localStorage.getItem('cnaobj_categ' + index + '_picture');
@@ -164,8 +193,8 @@ export class Storage {
 
     this.nr_authors = parseInt(localStorage.getItem('cnaobj_nr_authors'));
     this.authors = Array();
-    if (this.nr_authors > 0) {
-
+    if (this.nr_authors > 0)
+    {
       for (index = 0; index < this.nr_authors; index++) {
         title = localStorage.getItem('cnaobj_author' + index + '_title');
         about = localStorage.getItem('cnaobj_author' + index + '_about');
@@ -202,7 +231,8 @@ export class Storage {
     localStorage.setItem('cnaobj_last_datetime_sync', this.last_datetime_sync);
     localStorage.setItem('cnaobj_track_history', '' + this.track_history);
     localStorage.setItem('cnaobj_last_action', this.last_action);
-    localStorage.setItem('cnaobj_sort_authors', ''+this.sort_authors);
+    localStorage.setItem('cnaobj_sort_authors', '' + this.sort_authors);
+    localStorage.setItem('cnaobj_sort_books', '' + this.sort_books);
   }
   SaveCategories()
   {

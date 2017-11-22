@@ -140,18 +140,15 @@ export class AuthorPage {
     let reader = new FileReader();
     let fileX = this.fileProvider;
     reader.onload = (e) => {
-      fetch(reader.result,
-        {
-          method: "GET"
-        }).then(res => res.blob()).then(blob => { 
-          fileX.writeFile(fileX.dataDirectory, 'statement.pdf', blob, { replace: true }).then(res => {
-            console.log('save ok' + res.toInternalURL());
-          }).catch(err => {
-            console.log('save error')
-          });
-        }).catch(err => {
-          console.log('error')
-        });
+      if (reader.result.substr(0, 23) == "data:image/jpeg;base64,"
+        || reader.result.substr(0, 22) == "data:image/gif;base64,"
+        || reader.result.substr(0, 22) == "data:image/png;base64,")
+      {
+        var d = new Date();
+        this.userDefined = true;
+        this.picture = reader.result;
+        this.lastUpdated = "" + d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate() + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+      }
     };
     reader.readAsDataURL(file);
     let a = 5;

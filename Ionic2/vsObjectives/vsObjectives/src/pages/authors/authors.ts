@@ -18,7 +18,6 @@ export class AuthorsPage
   languageSet: boolean;
   nr_authors: number;
   authors: Array<Array<string>>;
-  test: number;
 
   msgSortOrder = "Most recent";
   msgNameAscending = "Name Ascending";
