@@ -3,61 +3,41 @@
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>
-      Books
-    </ion-title>
+    <ion-title>{{ 'BOOKS' | translate }}</ion-title>
   </ion-navbar>
 </ion-header>
 <ion-content padding id="page13">
   <div id="books-markdown18" class="show-list-numbers-and-dots">
     <p style="color:#000000;">
-      <strong>
-        Sort by:
-      </strong>
-      Recent
+      <strong>{{ 'SORT BY' | translate }}</strong> {{ msgSortOrder }}
     </p>
   </div>
-  <button id="books-button20" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Title
+  <button id="sortbyname" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="sortName()">
+    {{ 'NAME' | translate }}
   </button>
-  <button id="books-button21" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Author
+  <button id="sortbyauthor" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="sortAuthor()">
+    {{ 'AUTHOR' | translate }}
   </button>
-  <button id="books-button23" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Category
+  <button id="sortbycategory" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="sortCaregory()">
+    {{ 'CATEGORY' | translate }}
   </button>
-  <button id="books-button22" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;">
-    Date
+  <button id="sortbydate" ion-button color="positive" small style="border-radius:15px 15px 15px 15px;" (click)="sortDate()">
+    {{ 'DATE' | translate }}
   </button>
-  <ion-list id="books-list15">
-    <ion-item color="none" id="books-list-item30">
+  <button id="book_add" ion-button color="positive" small style="float:right ;border-radius:15px 15px 15px 15px;" (click)="addBook()">
+    {{ 'ADD NEW BOOK' | translate }}
+  </button>
+  <ion-list id="books_list">
+    <ion-item color="none" *ngFor="let book of books">
       <ion-thumbnail item-left>
-        <img />
+        <img src="{{ book[3] }}" (click)="editBook(book[4])" />
       </ion-thumbnail>
-      <h2>
-        Item
+      <h2 (click)="editBook(book[4])">
+        {{ book[0] }}
       </h2>
-    </ion-item>
-    <ion-item color="none" id="books-list-item31">
-      <ion-avatar item-left>
-        <img  />
-      </ion-avatar>
-      <h2>
-        Item
-      </h2>
-    </ion-item>
-    <ion-item color="none" id="books-list-item32">
-      <ion-icon name="ionic" item-left></ion-icon>
-      Item
-    </ion-item>
-    <ion-item color="none" id="books-list-item33">
-      Item 1
-    </ion-item>
-    <ion-item color="none" id="books-list-item34">
-      Item 2
-    </ion-item>
-    <ion-item color="none" id="books-list-item35">
-      Item 3
+      <h3 (click)="editBook(book[4])">
+        {{ book[1] }} - {{ book[2] }}
+      </h3>
     </ion-item>
   </ion-list>
 </ion-content>

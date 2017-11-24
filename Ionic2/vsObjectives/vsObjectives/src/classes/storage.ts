@@ -15,7 +15,7 @@ export type Task = {
   notes: string, picture: string, 
 };
 export type Author = { title: string, about: string, picture: string, lastUpdated: string, userDefined: boolean };
-export type Book = { title: string, author: number, category: number, until: Date, pages: number, page: number, link: string, files: Array<string>, photos: Array<string> };
+export type Book = { title: string, author: number, category: number, until: Date, pages: number, page: number, link: string, files: Array<string>, photos: Array<string>, updates: Array<Array<string>> };
   
 export class Storage {
 
@@ -102,7 +102,7 @@ export class Storage {
   InitAuthors() {
     this.nr_authors = 3;
     this.authors = Array();
-    this.authors[0] = { title: "Necunoscut", about: "Autor necunoscut.", picture: "anonymous.jpg", lastUpdated: "0", userDefined: false };
+    this.authors[0] = { title: "Necunoscut", about: "Autor necunoscut.", picture: "anonymous.png", lastUpdated: "0", userDefined: false };
     this.authors[1] = { title: "Robert Kiyosaki", about: "American businessman and author of the Rich Dad, Poor Dad series of books.", picture: "RobertKiyosaki.jpg", lastUpdated: "0", userDefined: false };
     this.authors[2] = { title: "Brian Tracy", about: "American motivational public speaker and self-development author.", picture: "BrianTracy.jpg", lastUpdated: "1", userDefined: false };
   }
@@ -113,10 +113,11 @@ export class Storage {
 
   InitBooks()
   {
-    this.nr_books = 2;
+    this.nr_books = 3;
     this.books = Array();
-    this.books[0] = { title: "Tată bogat, tată sărac", author: 0, category: 4, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array() };
-    this.books[1] = { title: "Psihologia succesului", author: 1, category: 2, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array() };
+    this.books[0] = { title: "Pelerinul rus", author: 0, category: 0, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array(), updates: Array() };
+    this.books[1] = { title: "Psihologia succesului", author: 2, category: 2, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array(), updates: Array()  };
+    this.books[2] = { title: "Tată bogat, tată sărac", author: 1, category: 4, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array(), updates: Array() };
   }
 
   InitTasks()
@@ -211,7 +212,52 @@ export class Storage {
   }
   LoadBooks()
   {
-    //
+    var title;
+    var author;
+    var category;
+    var link;
+    var pages;
+    var page;
+    var until;
+    var nlength;
+    var index, ndx;
+
+    this.nr_books = parseInt(localStorage.getItem('cnaobj_nr_books'));
+    this.books = Array();
+    if (this.nr_books > 0)
+    {
+      for (index = 0; index < this.nr_books; index++)
+      {
+        title = localStorage.getItem('cnaobj_book' + index + '_title');
+        author = parseInt(localStorage.getItem('cnaobj_book' + index + '_author'));
+        category = parseInt(localStorage.getItem('cnaobj_book' + index + '_category'));
+        page = parseInt(localStorage.getItem('cnaobj_book' + index + '_page'));
+        pages = parseInt(localStorage.getItem('cnaobj_book' + index + '_pages'));
+        link = localStorage.getItem('cnaobj_book' + index + '_link');
+        until = new Date(localStorage.getItem('cnaobj_book' + index + '_until'));
+
+        this.books[index] =
+          {
+            title: title, author: author, category: category, page: page, pages: pages, until: until, link: link,
+            files: Array(), photos: Array(), updates: Array()
+          }
+        nlength = parseInt(localStorage.getItem('cnaobj_book' + index + '_files_nr'));
+        if (nlength > 0)
+          for (ndx = 0; ndx < nlength; ndx++)
+            this.books[index].files[ndx] = localStorage.getItem('cnaobj_book' + index + '_file' + ndx);
+        nlength = parseInt(localStorage.getItem('cnaobj_book' + index + '_photos_nr'));
+        if (nlength > 0)
+          for (ndx = 0; ndx < nlength; ndx++)
+            this.books[index].photos[ndx] = localStorage.getItem('cnaobj_book' + index + '_photo' + ndx);
+        nlength = parseInt(localStorage.getItem('cnaobj_book' + index + '_updates_nr'));
+        if (nlength > 0)
+          for (ndx = 0; ndx < nlength; ndx++)
+          {
+            this.books[index].updates[ndx] = Array(localStorage.getItem('cnaobj_book' + index + '_updateDate' + ndx),
+                                                   localStorage.getItem('cnaobj_book' + index + '_updatePages' + ndx));
+          }
+      }
+    }
   }
   LoadAll()
   {
@@ -275,7 +321,39 @@ export class Storage {
   }
   SaveBooks()
   {
-    //
+    localStorage.setItem('cnaobj_nr_books', '' + this.nr_books);
+    if (this.nr_books > 0)
+      for (var index = 0; index < this.nr_books; index++)
+        this.SaveBook(index);
+  }
+  SaveBook(index: number)
+  {
+    var ndx;
+
+    localStorage.setItem('cnaobj_nr_books', '' + this.nr_books);
+
+    localStorage.setItem('cnaobj_book' + index + '_title', this.books[index].title);
+    localStorage.setItem('cnaobj_book' + index + '_author', ""+this.books[index].author);
+    localStorage.setItem('cnaobj_book' + index + '_category', ""+this.books[index].category);
+    localStorage.setItem('cnaobj_book' + index + '_link', this.books[index].link);
+    localStorage.setItem('cnaobj_book' + index + '_page', '' + this.books[index].page);
+    localStorage.setItem('cnaobj_book' + index + '_pages', '' + this.books[index].pages);
+    localStorage.setItem('cnaobj_book' + index + '_until', this.books[index].until.getFullYear + '-' + this.books[index].until.getMonth + '-' + this.books[index].until.getDay);
+    localStorage.setItem('cnaobj_book' + index + '_files_nr', '' + this.books[index].files.length);
+    localStorage.setItem('cnaobj_book' + index + '_photos_nr', '' + this.books[index].photos.length);
+    localStorage.setItem('cnaobj_book' + index + '_updates_nr', '' + this.books[index].updates.length);
+    if (this.books[index].files.length > 0)
+      for (ndx = 0; ndx < this.books[index].files.length; ndx++)
+        localStorage.setItem('cnaobj_book' + index + '_file' + ndx, '' + this.books[index].files[ndx]);
+    if (this.books[index].photos.length > 0)
+      for (ndx = 0; ndx < this.books[index].photos.length; ndx++)
+        localStorage.setItem('cnaobj_book' + index + '_photo' + ndx, '' + this.books[index].photos[ndx]);
+    if (this.books[index].updates.length > 0)
+      for (ndx = 0; ndx < this.books[index].updates.length; ndx++)
+      {
+        localStorage.setItem('cnaobj_book' + index + '_updateDate' + ndx, '' + this.books[index].updates[ndx][1]);
+        localStorage.setItem('cnaobj_book' + index + '_updatePages' + ndx, '' + this.books[index].updates[ndx][2]);
+      }
   }
   Save()
   {

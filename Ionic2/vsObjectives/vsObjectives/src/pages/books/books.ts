@@ -3,7 +3,7 @@ import { NavController } from 'ionic-angular';
 import { TranslateService } from '@ngx-translate/core';
 import { AlertController } from 'ionic-angular';
 import { Storage, SortBy } from '../../classes/storage.ts';
-import { BookPage } from '../../pages/author/author';
+import { BookPage } from '../../pages/book/book';
 
 @Component({
   selector: 'page-books',
@@ -12,16 +12,11 @@ import { BookPage } from '../../pages/author/author';
 
 export class BooksPage
 {
-
   storage: Storage;
   translater: TranslateService;
   languageSet: boolean;
   nr_books: number;
   books: Array<Array<string>>;
-  nr_authors: number;
-  authors: Array<string>;
-  nr_categories: number;
-  categories: Array<string>;
 
   msgSortOrder = "Most recent";
   msgNameAscending = "Name Ascending";
@@ -44,107 +39,176 @@ export class BooksPage
   {
     this.storage.LoadSettings();
     this.storage.LoadAuthors();
-    this.nr_authors = this.storage.nr_authors;
+    this.storage.LoadCategories();
+    this.storage.LoadBooks();
+    this.nr_books = this.storage.nr_books;
     this.fillsort();
   }
 
   showSortMsg()
   {
-    if (this.storage.sort_authors == SortBy.NameAlphabeticalAsc)
+    if (this.storage.sort_books == SortBy.NameAlphabeticalAsc)
       this.msgSortOrder = this.msgNameAscending;
-    else if (this.storage.sort_authors == SortBy.NameAlphabeticalDesc)
+    else if (this.storage.sort_books == SortBy.NameAlphabeticalDesc)
       this.msgSortOrder = this.msgNameDescending;
-    else if (this.storage.sort_authors == SortBy.DateAsc)
+    else if (this.storage.sort_books == SortBy.AuthorAsc)
+      this.msgSortOrder = this.msgAuthorAscending;
+    else if (this.storage.sort_books == SortBy.AuthorDesc)
+      this.msgSortOrder = this.msgAuthorDescending;
+    else if (this.storage.sort_books == SortBy.CategAsc)
+      this.msgSortOrder = this.msgCategoryAscending;
+    else if (this.storage.sort_books == SortBy.CategDesc)
+      this.msgSortOrder = this.msgCategoryDescending;
+    else if (this.storage.sort_books == SortBy.DateAsc)
       this.msgSortOrder = this.msgDateAscending;
-    else if (this.storage.sort_authors == SortBy.DateDesc)
+    else if (this.storage.sort_books == SortBy.DateDesc)
       this.msgSortOrder = this.msgDateDescending;
   }
 
   fillsort()
   {
     var index, index2, index3;
-    var picture, title, date;
+    var picture, title, date, categ, author;
 
-    this.authors = Array();
-    this.storage.LoadAuthors();
-    if (this.nr_authors > 0) 
+    this.books = Array();
+    this.storage.LoadBooks();
+    if (this.nr_books > 0) 
     {
-      for (index2 = 0; index2 < this.nr_authors; index2++) 
+      for (index2 = 0; index2 < this.nr_books; index2++) 
       {
         index = 0; // index of the maximum
         title = "";
         date = "";
-        if (this.storage.sort_authors == SortBy.NameAlphabeticalDesc)
+        categ = "";
+        author = "";
+        if (this.storage.sort_books == SortBy.NameAlphabeticalDesc)
           title = "÷z";
-        if (this.storage.sort_authors == SortBy.DateDesc)
+        if (this.storage.sort_books == SortBy.DateDesc)
           date = "÷z";
+        if (this.storage.sort_books == SortBy.AuthorDesc)
+          author = "÷z";
+        if (this.storage.sort_books == SortBy.CategoryDesc)
+          categ = "÷z";
 
-        for (index3 = 0; index3 < this.nr_authors; index3++)
+        for (index3 = 0; index3 < this.nr_books; index3++)
         {
-          if (typeof this.storage.authors[index3] !== 'undefined')
+          if (typeof this.storage.books[index3] !== 'undefined')
           {
-            if (this.storage.sort_authors == SortBy.NameAlphabeticalAsc)
+            if (this.storage.sort_books == SortBy.NameAlphabeticalAsc)
             {
-              if (this.storage.authors[index3].title > title)
+              if (this.storage.books[index3].title > title)
               {
                 index = index3;
-                title = this.storage.authors[index3].title;
+                title = this.storage.books[index3].title;
               }
             }
-            else if (this.storage.sort_authors == SortBy.NameAlphabeticalDesc)
+            else if (this.storage.sort_books == SortBy.NameAlphabeticalDesc)
             {
-              if (this.storage.authors[index3].title < title)
+              if (this.storage.books[index3].title < title)
               {
                 index = index3;
-                title = this.storage.authors[index3].title;
+                title = this.storage.books[index3].title;
               }
             }
-            else if (this.storage.sort_authors == SortBy.DateAsc)
+            else if (this.storage.sort_books == SortBy.AuthorAsc)
             {
-              if (this.storage.authors[index3].lastUpdated > date)
+              if (this.storage.authors[this.storage.books[index3].author].title > author)
               {
                 index = index3;
-                date = this.storage.authors[index3].lastUpdated;
+                author = this.storage.authors[this.storage.books[index3].author].title;
               }
             }
-            else if (this.storage.sort_authors == SortBy.DateDesc)
+            else if (this.storage.sort_books == SortBy.AuthorDesc)
             {
-              if (this.storage.authors[index3].lastUpdated < date)
+              if (this.storage.authors[this.storage.books[index3].author].title < author)
               {
                 index = index3;
-                date = this.storage.authors[index3].lastUpdated;
+                author = this.storage.authors[this.storage.books[index3].author].title;
+              }
+            }
+            else if (this.storage.sort_books == SortBy.CategoryAsc)
+            {
+              if (this.storage.categories[this.storage.books[index3].category].title > categ)
+              {
+                index = index3;
+                categ = this.storage.categories[this.storage.books[index3].category].title;
+              }
+            }
+            else if (this.storage.sort_books == SortBy.CategoryDesc)
+            {
+              if (this.storage.categories[this.storage.books[index3].category].title < categ)
+              {
+                index = index3;
+                categ = this.storage.categories[this.storage.books[index3].category].title;
+              }
+            }
+            else if (this.storage.sort_books == SortBy.DateAsc)
+            {
+              if (this.storage.books[index3].updates[this.storage.books[index3].updates.length - 1][1] > date)
+              {
+                index = index3;
+                date = this.storage.books[index3].updates[this.storage.books[index3].updates.length - 1][1];
+              }
+            }
+            else if (this.storage.sort_books == SortBy.DateDesc)
+            {
+              if (this.storage.books[index3].updates[this.storage.books[index3].updates.length - 1][1] < date)
+              {
+                index = index3;
+                date = this.storage.books[index3].updates[this.storage.books[index3].updates.length-1][1];
               }
             }
           }
         }
-        title = this.storage.authors[index].title;
-        picture = this.storage.authors[index].picture;
-        if (!this.storage.authors[index].userDefined)
-          picture = "assets/imgs/" + this.storage.authors[index].picture;
-        this.authors[index2] = Array(title, picture, '' + index);
-        delete this.storage.authors[index];
+        title = this.storage.books[index].title;
+        author = this.storage.authors[this.storage.books[index].author].title;
+        categ = this.storage.categories[this.storage.books[index].category].title
+        picture = this.storage.books[index].photos[0];
+        this.books[index2] = Array(title, author, categ, picture, '' + index);
+        delete this.storage.books[index];
       }
     }
   }
 
   sortName()
   {
-    if (this.storage.sort_authors == SortBy.NameAlphabeticalAsc)
-      this.storage.sort_authors = SortBy.NameAlphabeticalDesc
+    if (this.storage.sort_books == SortBy.NameAlphabeticalAsc)
+      this.storage.sort_books = SortBy.NameAlphabeticalDesc
     else
-      this.storage.sort_authors = SortBy.NameAlphabeticalAsc
+      this.storage.sort_books = SortBy.NameAlphabeticalAsc
 
     this.showSortMsg();
     this.fillsort();
   }
 
+  sortAuthor()
+  {
+    if (this.storage.sort_books == SortBy.AuthorAsc)
+      this.storage.sort_books = SortBy.AuthorDesc
+    else
+      this.storage.sort_books = SortBy.AuthorAsc
+
+    this.showSortMsg();
+    this.fillsort();
+  }
+
+  sortCategory()
+  {
+    if (this.storage.sort_books == SortBy.CategoryAsc)
+      this.storage.sort_books = SortBy.CategoryDesc
+    else
+      this.storage.sort_books = SortBy.CategoryAsc
+
+    this.showSortMsg();
+    this.fillsort();
+  }
 
   sortDate()
   {
-    if (this.storage.sort_authors == SortBy.DateAsc)
-      this.storage.sort_authors = SortBy.DateDesc
+    if (this.storage.sort_books == SortBy.DateAsc)
+      this.storage.sort_books = SortBy.DateDesc
     else
-      this.storage.sort_authors = SortBy.DateAsc
+      this.storage.sort_books = SortBy.DateAsc
 
     this.showSortMsg();
     this.fillsort();
@@ -168,14 +232,34 @@ export class BooksPage
     this.translater.setDefaultLang('en');
     this.translater.use(this.storage.userLang);
 
-    this.translater.get("NAME ASCENDING").subscribe(value =>
+    this.translater.get("TITLE ASCENDING").subscribe(value =>
     {
       this.msgNameAscending = value;
       this.showSortMsg();
     });
-    this.translater.get("NAME DESCENDING").subscribe(value =>
+    this.translater.get("TITLE DESCENDING").subscribe(value =>
     {
       this.msgNameDescending = value;
+      this.showSortMsg();
+    });
+    this.translater.get("CATEGORY ASCENDING").subscribe(value =>
+    {
+      this.msgCategoryAscending = value;
+      this.showSortMsg();
+    });
+    this.translater.get("CATEGORY DESCENDING").subscribe(value =>
+    {
+      this.msgCategoryDescending = value;
+      this.showSortMsg();
+    });
+    this.translater.get("AUTHOR ASCENDING").subscribe(value =>
+    {
+      this.msgAuthorAscending = value;
+      this.showSortMsg();
+    });
+    this.translater.get("AUTHOR DESCENDING").subscribe(value =>
+    {
+      this.msgAuthorDescending = value;
       this.showSortMsg();
     });
     this.translater.get("DATE ASCENDING").subscribe(value =>
@@ -190,19 +274,19 @@ export class BooksPage
     });
   }
 
-  editAuthor(index: string)
+  editBook(index: string)
   {
-    this.storage.last_action = "editAuthor" + index;
+    this.storage.last_action = "editBook" + index;
     this.storage.SaveSettings();
-    this.navCtrl.push(AuthorPage);
+    this.navCtrl.push(BookPage);
     this.storage.last_action = "";
   }
 
-  addAuthor()
+  addBook()
   {
-    this.storage.last_action = "newAuthor";
+    this.storage.last_action = "newBook";
     this.storage.SaveSettings();
-    this.navCtrl.push(AuthorPage);
+    this.navCtrl.push(BookPage);
   }
 
 
