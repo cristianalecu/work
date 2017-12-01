@@ -87,7 +87,7 @@ export class BooksPage
           date = "÷z";
         if (this.storage.sort_books == SortBy.AuthorDesc)
           author = "÷z";
-        if (this.storage.sort_books == SortBy.CategoryDesc)
+        if (this.storage.sort_books == SortBy.CategDesc)
           categ = "÷z";
 
         for (index3 = 0; index3 < this.nr_books; index3++)
@@ -126,7 +126,7 @@ export class BooksPage
                 author = this.storage.authors[this.storage.books[index3].author].title;
               }
             }
-            else if (this.storage.sort_books == SortBy.CategoryAsc)
+            else if (this.storage.sort_books == SortBy.CategAsc)
             {
               if (this.storage.categories[this.storage.books[index3].category].title > categ)
               {
@@ -134,7 +134,7 @@ export class BooksPage
                 categ = this.storage.categories[this.storage.books[index3].category].title;
               }
             }
-            else if (this.storage.sort_books == SortBy.CategoryDesc)
+            else if (this.storage.sort_books == SortBy.CategDesc)
             {
               if (this.storage.categories[this.storage.books[index3].category].title < categ)
               {
@@ -164,6 +164,8 @@ export class BooksPage
         author = this.storage.authors[this.storage.books[index].author].title;
         categ = this.storage.categories[this.storage.books[index].category].title
         picture = this.storage.books[index].photos[0];
+        if (!this.storage.books[index].userDefined)
+          picture = "assets/imgs/" + this.storage.books[index].photos[0];
         this.books[index2] = Array(title, author, categ, picture, '' + index);
         delete this.storage.books[index];
       }
@@ -194,10 +196,10 @@ export class BooksPage
 
   sortCategory()
   {
-    if (this.storage.sort_books == SortBy.CategoryAsc)
-      this.storage.sort_books = SortBy.CategoryDesc
+    if (this.storage.sort_books == SortBy.CategAsc)
+      this.storage.sort_books = SortBy.CategDesc
     else
-      this.storage.sort_books = SortBy.CategoryAsc
+      this.storage.sort_books = SortBy.CategAsc
 
     this.showSortMsg();
     this.fillsort();

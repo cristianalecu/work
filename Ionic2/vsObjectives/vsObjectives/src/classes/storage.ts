@@ -61,7 +61,7 @@ export class Storage {
     else
       this.LoadAuthors();
 
-    if (localStorage.getItem('cnaobj_nr_books') == null)
+    if (localStorage.getItem('cnaobj_nr_books')== null)  
     {
       this.InitBooks();
       this.SaveBooks();
@@ -115,9 +115,21 @@ export class Storage {
   {
     this.nr_books = 3;
     this.books = Array();
-    this.books[0] = { title: "Pelerinul rus", author: 0, category: 0, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array(), updates: Array() };
-    this.books[1] = { title: "Psihologia succesului", author: 2, category: 2, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array(), updates: Array()  };
-    this.books[2] = { title: "Tată bogat, tată sărac", author: 1, category: 4, until: new Date("2017-12-30"), pages: 1, page: 1, link: "", files: Array(), photos: Array(), updates: Array() };
+    this.books[0] = {
+      title: "Pelerinul rus", author: 0, category: 0, until: new Date("2017-12-30"), page: 1, pages: 78,
+      link: "https://www.crestinortodox.ro/carti-ortodoxe-audio/pelerinul-rus-audio/",
+      files: Array("pelerinul-rus.pdf"), photos: Array("pelerinul_rus.jpg"), updates: Array(Array("1", "2017-01-01"))
+    };
+    this.books[1] = {
+      title: "Psihologia succesului", author: 2, category: 2, until: new Date("2017-12-30"), page: 1, pages: 212,
+      link: "https://florinrosoga.ro/blog/brian-tracy-carti/", files: Array("tracy-brian-succesul-in-viata.pdf"),
+      photos: Array("psychologyofsuccess.jpg"), updates: Array(Array("1", "2017-01-01"))
+    };
+    this.books[2] = {
+      title: "Tată bogat, tată sărac", author: 1, category: 4, until: new Date("2017-12-30"), page: 1, pages: 100,
+      link: "https://florinrosoga.ro/blog/robert-kiyosaki-tata-bogat-tata-sarac/",
+      files: Array("robert-kiyosaki-tata-bogat-tata-sarac.pdf"), photos: Array("tata-bogat-tata-sarac.jpg"), updates: Array(Array("1", "2017-01-01"))
+    };
   }
 
   InitTasks()
