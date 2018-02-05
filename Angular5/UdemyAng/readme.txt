@@ -2,6 +2,8 @@
 ng new my-first-app
 npm install --save bootstrap@3
 
+in .angular-cli.json  inside   "apps": ["styles": [] ]   first  add:
+  "../node_modules/bootstrap/dist/css/bootstrap.min.css",
 
 in app.moduels.ts  add:
 
