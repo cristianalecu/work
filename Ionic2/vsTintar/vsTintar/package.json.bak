@@ -41,8 +41,6 @@
     "typescript": "~2.6.2"
   },
   "cordovaPlugins": [
-  ],
-  "cordovaPlugins_old": [
     "cordova-plugin-whitelist",
     "cordova-plugin-console",
     "cordova-plugin-statusbar",
