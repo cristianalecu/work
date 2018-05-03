@@ -7,6 +7,15 @@ interface UserResponse {
   company: string;
 }
 
+interface SnippetResponse {
+  code: string;
+  id:number;
+  language: string;
+  linenos:string;
+  style: string;
+  title: string;
+}
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -21,9 +30,9 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get<UserResponse>('https://api.github.com/users/cristianalecu').subscribe(
+    this.http.get<SnippetResponse>('http://127.0.0.1:5500/s/snippets/').subscribe(
       data => {
-          console.log("User login " + data.login);
+          console.log('User login ' + JSON.stringify(data));
       }),
       (err:HttpErrorResponse) => {
         if(err.error instanceof Error)
@@ -36,19 +45,18 @@ export class AppComponent implements OnInit {
         }
       }
     
-    const req = this.http.post("http://jsonplaceholder.typicode.com/posts", 
+    const req = this.http.post('http://127.0.0.1:5500/s/snippets/',
     {
-      title: 'foo',
-      body: 'bar',
-      userId: 1
+      code: 'print 888',
+      title: 'ppp',
     }).subscribe(
       res => {
         console.log(res);
       },
       res => {
-        console.log("Error occured");
+        console.log('Error occured');
       }
-    );  
+    );
   }
 
 
