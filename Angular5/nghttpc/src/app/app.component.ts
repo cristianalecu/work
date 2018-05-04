@@ -30,7 +30,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get<SnippetResponse>('http://127.0.0.1:5500/s/snippets/').subscribe(
+    this.http.get<SnippetResponse>('http://127.0.0.1:5500/snippets/').subscribe(
       data => {
           console.log('User login ' + JSON.stringify(data));
       }),
@@ -44,11 +44,35 @@ export class AppComponent implements OnInit {
           console.log("Server-side Error occurd");
         }
       }
-    
-    const req = this.http.post('http://127.0.0.1:5500/s/snippets/',
+
+    // const req = this.http.delete('http://127.0.0.1:5500/snippets/4/').subscribe(
+    //   res => {
+    //     console.log(res);
+    //   },
+    //   res => {
+    //     console.log('Error occured');
+    //   }
+    // );    
+
+    // const req = this.http.put('http://127.0.0.1:5500/snippets/12/',
+    // {
+    //   code: 'print 111',
+    //   title: 'ppp',
+    //   highlighted: "SDSDSD",
+    // }).subscribe(
+    //   res => {
+    //     console.log(res);
+    //   },
+    //   res => {
+    //     console.log('Error occured');
+    //   }
+    // );
+
+    const req = this.http.post('http://127.0.0.1:5500/snippets/',
     {
-      code: 'print 888',
+      code: 'print 111',
       title: 'ppp',
+      highlighted: "SDSDSD",
     }).subscribe(
       res => {
         console.log(res);
@@ -57,6 +81,7 @@ export class AppComponent implements OnInit {
         console.log('Error occured');
       }
     );
+
   }
 
 
