@@ -22,7 +22,7 @@ call git push
 cd ..
 
 
-cd Bets 
+cd Rest
 call git push
 cd ..
 

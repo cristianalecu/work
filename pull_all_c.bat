@@ -72,20 +72,20 @@ call git pull
 cd ..
 
 
-IF EXIST Bets\NUL goto AFTER_Bets
+IF EXIST Rest\NUL goto AFTER_Rest
 
-md Bets
-cd Bets
+md Rest
+cd Rest
 
 call git init
-call git remote add origin https://github.com/cristianalecu/bets.git
+call git remote add origin https://github.com/cristianalecu/rest.git
 call git pull origin master
 call git push --set-upstream origin master
 cd ..
 
-:AFTER_Bets
+:AFTER_Rest
 
-cd Bets 
+cd Rest 
 call git pull 
 cd ..
 

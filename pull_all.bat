@@ -19,7 +19,7 @@ cd Financiar
 call git pull 
 cd ..
 
-cd Bets 
+cd Rest 
 call git pull 
 cd ..
 
